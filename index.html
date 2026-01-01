@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏆 Coach Manager</title>
+    <link rel="icon" type="image/png" href="Coach Manager icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://unpkg.com/pdf-lib/dist/pdf-lib.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+
+<body>
+    <header class="app-header no-print">
+        <h1 class="app-title">🏆 Coach Manager</h1>
+        <h1 class="app-title">أستغفر الله</h1>
+    </header>
+
+    <div class="container">
+        <!-- Input Section -->
+        <section class="input-section no-print">
+            <h2 id="inputSectionTitle">📥 أدخل النظام الغذائي</h2>
+
+            <div class="ai-controls">
+                <div class="mode-toggles">
+                    <button class="mode-btn active" id="btnManual" onclick="setMode('manual')">✍️ Manual</button>
+                    <button class="mode-btn" id="btnAI" onclick="setMode('ai')">🤖 Auto</button>
+                    <button class="settings-btn" onclick="toggleSettings()" title="إعدادات API">⚙️</button>
+                </div>
+
+
+
+                <div id="aiSettings" class="ai-settings" style="display: none;">
+                    <input type="password" id="apiKey" placeholder="أدخل مفتاح Gemini API هنا" onchange="saveApiKey()"
+                        oncopy="return false;" oncut="return false;" onpaste="return true;"
+                        style="user-select: none; -webkit-user-select: none;">
+                </div>
+
+                <div id="aiInputContainer" style="display: none;">
+                    <label for="aiInputText"
+                        style="color: var(--highlight-color); font-weight: bold; display: block; margin-bottom: 5px;">📝
+                        بيانات العميل
+                        (الصق هنا):</label>
+                    <textarea id="aiInputText" class="ai-input-area"
+                        placeholder="أدخل استبيان العميل هنا..."></textarea>
+                    <button onclick="generatePlan()" class="generate-btn">✨ توليد الخطة (Generate) ✨</button>
+                </div>
+                <!-- Coach Mode Selector (Below Manual/Auto) -->
+                <div class="coach-mode-toggles">
+                    <button class="coach-mode-btn active" id="btnNutrition" onclick="switchCoachMode('nutrition')">
+                        <span class="mode-icon">🍎</span>
+                        <span class="mode-text">Nutrition</span>
+                    </button>
+                    <button class="coach-mode-btn" id="btnTraining" onclick="switchCoachMode('training')">
+                        <span class="mode-icon">🏋️</span>
+                        <span class="mode-text">Training</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="controls">
+                <button onclick="render()">تحديث المعاينة 🔄</button>
+                <button onclick="clearAll()" class="danger">مسح الكل 🗑️</button>
+                <button onclick="window.print()">طباعة / PDF 🖨️</button>
+            </div>
+            <textarea id="inputText" placeholder="الصق النظام الغذائي هنا..."></textarea>
+        </section>
+
+        <!-- Before/After Section (Nutrition Only) -->
+        <section id="beforeAfterSection" class="input-section no-print" style="border-color: #FFD700;">
+            <h2>📸 Before & After</h2>
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <div>
+                    <label style="color: #a0aec0;">اسم العميل:</label>
+                    <input type="text" id="clientName" placeholder="اكتب اسم العميل..."
+                        style="width: 100%; padding: 10px; background: var(--input-bg); color: white; border: 1px solid var(--accent-color); border-radius: 8px; margin-top: 5px;"
+                        onchange="previewBeforeAfter()">
+                </div>
+                <div style="display: flex; gap: 20px; flex-wrap: wrap;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="color: #FFD700; font-weight: bold;">صورة Before:</label>
+                        <input type="file" id="beforeImg" accept="image/*" onchange="previewBeforeAfter()"
+                            style="width: 100%; padding: 8px; background: var(--input-bg); color: white; border: 1px solid #666; border-radius: 6px; margin-top: 5px;">
+                        <input type="text" id="beforeText" placeholder="نص تحت Before (افتراضي: Before)"
+                            style="width: 100%; padding: 8px; background: var(--input-bg); color: white; border: 1px solid #666; border-radius: 6px; margin-top: 5px;"
+                            onchange="previewBeforeAfter()">
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="color: #00ff99; font-weight: bold;">صورة After:</label>
+                        <input type="file" id="afterImg" accept="image/*" onchange="previewBeforeAfter()"
+                            style="width: 100%; padding: 8px; background: var(--input-bg); color: white; border: 1px solid #666; border-radius: 6px; margin-top: 5px;">
+                        <input type="text" id="afterText" placeholder="نص تحت After (افتراضي: After)"
+                            style="width: 100%; padding: 8px; background: var(--input-bg); color: white; border: 1px solid #666; border-radius: 6px; margin-top: 5px;"
+                            onchange="previewBeforeAfter()">
+                    </div>
+                </div>
+                <div>
+                    <label style="color: #a0aec0;">ملاحظات:</label>
+                    <textarea id="baNotesInput" placeholder="اكتب ملاحظاتك هنا..." onchange="previewBeforeAfter()"
+                        style="width: 100%; height: 80px; padding: 10px; background: var(--input-bg); color: white; border: 1px solid var(--accent-color); border-radius: 8px; margin-top: 5px;"></textarea>
+                </div>
+                <button onclick="previewBeforeAfter()"
+                    style="background: linear-gradient(45deg, #FFD700, #FFA500); color: black; border: none;">تحديث
+                    معاينة Before/After 🔄</button>
+            </div>
+        </section>
+
+        <!-- PDF Merge Section -->
+        <section class="input-section no-print" style="border-color: #00ff99;">
+            <h2 id="pdfSectionTitle">📄 دمج مع ملف PDF الرئيسي</h2>
+            <div class="controls" style="align-items: center; flex-wrap: wrap;">
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label style="color: #a0aec0;">ملف PDF الرئيسي:</label>
+                    <div id="masterStatus" style="color: #00ff99; font-weight: bold;">جاري التحقق من الملف...</div>
+                    <input type="file" id="manualMasterPdf" accept="application/pdf"
+                        style="display: none; margin-top: 5px;" onchange="handleManualFile(this)">
+                    <button id="manualSelectBtn" onclick="document.getElementById('manualMasterPdf').click()"
+                        style="background: #3182ce; font-size: 0.9rem; padding: 5px 10px;">📂 اختر الملف
+                        يدوياً</button>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 5px;">
+                    <label for="insertPage" style="color: #a0aec0;">إدراج بعد الصفحة رقم:</label>
+                    <input type="number" id="insertPage" value="4"
+                        style="background: var(--input-bg); color: white; border: 1px solid var(--accent-color); padding: 8px; border-radius: 6px; width: 80px; text-align: center;">
+                </div>
+
+                <div style="margin-right: auto;">
+                    <button onclick="mergeAndDownload()"
+                        style="background: linear-gradient(45deg, #00ff99, #001e50); color: white; border-color: #00ff99;">
+                        دمج وتحميل الملف النهائي 🚀
+                    </button>
+                </div>
+            </div>
+            <a id="downloadLink" style="display:none;"></a>
+            <div id="msg" style="margin-top: 10px; font-weight: bold;"></div>
+        </section>
+
+        <section id="output" class="output-section">
+        </section>
+    </div>
+
+    <!-- Custom Context Menu -->
+    <div id="customContextMenu" class="context-menu" style="display: none;">
+        <ul>
+            <li onclick="execCommand('cut')">✂️ Cut (قص)</li>
+            <li onclick="execCommand('copy')">📋 Copy (نسخ)</li>
+            <li onclick="execCommand('paste')">📥 Paste (لصق)</li>
+        </ul>
+    </div>
+
+    <script src="bg_data.js"></script>
+    <script src="exercises-data.js"></script>
+    <script src="ai_prompts.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>
