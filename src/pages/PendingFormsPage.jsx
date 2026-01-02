@@ -12,7 +12,7 @@ import {
     deletePendingForm,
     updatePendingForm
 } from '../services/pendingFormService';
-import { addNewClient, getAllClients } from '../services/clientService';
+import { addNewClient, getAllClients, updateClient, getClientByCode } from '../services/clientService';
 import { addSubscription } from '../services/subscriptionService';
 import FormPreview from '../components/FormPreview';
 
@@ -199,6 +199,47 @@ export default function PendingFormsPage() {
         setEditData({});
     };
 
+    // Update approved form data in the actual clients/subscriptions collection
+    const handleUpdateApproved = async () => {
+        if (processing) return;
+        setProcessing(true);
+        try {
+            const clientCode = editData.ClientCode || editData.clientCode;
+            if (!clientCode) {
+                alert('❌ لا يوجد كود للعميل');
+                return;
+            }
+
+            // Find the client by code
+            const client = await getClientByCode(clientCode);
+            if (!client) {
+                alert('❌ لم يتم العثور على العميل في قاعدة البيانات');
+                return;
+            }
+
+            // Update the client
+            await updateClient(client.id, editData);
+
+            // Update the pending form record too
+            await updatePendingForm(selectedForm.id, editData);
+
+            // Update local state
+            setForms(prev => prev.map(f =>
+                f.id === selectedForm.id ? { ...f, data: editData } : f
+            ));
+            setSelectedForm(prev => ({ ...prev, data: editData }));
+            setEditMode(false);
+            setEditData({});
+
+            alert('✅ تم تحديث بيانات العميل في قاعدة البيانات!');
+        } catch (error) {
+            console.error('❌ Error updating approved:', error);
+            alert('❌ حدث خطأ: ' + error.message);
+        } finally {
+            setProcessing(false);
+        }
+    };
+
     // Handle edit field change
     const handleEditChange = (key, value) => {
         setEditData(prev => ({ ...prev, [key]: value }));
@@ -340,6 +381,14 @@ export default function PendingFormsPage() {
                                         <FaEdit /> تعديل
                                     </button>
                                 )}
+                                {selectedForm.status === 'approved' && !editMode && (
+                                    <button
+                                        onClick={handleStartEdit}
+                                        className="px-3 py-1 bg-orange-500 hover:bg-orange-600 text-white text-sm rounded-lg flex items-center gap-1"
+                                    >
+                                        <FaEdit /> تعديل وتحديث
+                                    </button>
+                                )}
                             </div>
 
                             {/* Edit Mode or Preview */}
@@ -367,11 +416,11 @@ export default function PendingFormsPage() {
                             {editMode ? (
                                 <div className="mt-6 flex gap-3">
                                     <button
-                                        onClick={handleSaveEdit}
+                                        onClick={selectedForm.status === 'approved' ? handleUpdateApproved : handleSaveEdit}
                                         disabled={processing}
-                                        className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold flex items-center justify-center gap-2"
+                                        className={`flex-1 px-4 py-3 ${selectedForm.status === 'approved' ? 'bg-orange-600 hover:bg-orange-700' : 'bg-blue-600 hover:bg-blue-700'} text-white rounded-lg font-bold flex items-center justify-center gap-2`}
                                     >
-                                        <FaSave /> حفظ التعديلات
+                                        <FaSave /> {selectedForm.status === 'approved' ? 'تحديث في قاعدة البيانات' : 'حفظ التعديلات'}
                                     </button>
                                     <button
                                         onClick={handleCancelEdit}
