@@ -366,10 +366,15 @@ export default function SubscriptionsPage() {
                                         {sub.clientEmail || '-'}
                                     </td>
                                     <td className="px-4 py-3">
-                                        <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-950/50 
-                      text-blue-800 dark:text-blue-300 rounded-full text-sm font-medium">
-                                            {sub.package || '-'}
-                                        </span>
+                                        <div className="flex flex-col">
+                                            <span className="inline-block px-3 py-1 bg-blue-100 dark:bg-blue-950/50 
+                        text-blue-800 dark:text-blue-300 rounded-full text-sm font-medium w-fit">
+                                                {sub.package || '-'}
+                                            </span>
+                                            <span className="text-xs text-gray-400 dark:text-gray-500 mt-1">
+                                                📅 {sub.createdAt && sub.createdAt.toDate ? new Date(sub.createdAt.toDate()).toLocaleDateString('ar-EG') : 'غير متوفر'}
+                                            </span>
+                                        </div>
                                     </td>
                                     <td className="px-4 py-3 text-gray-900 dark:text-white hidden sm:table-cell">
                                         {sub.price} {sub.currency}

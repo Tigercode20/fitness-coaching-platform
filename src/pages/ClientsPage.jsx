@@ -431,6 +431,11 @@ export default function ClientsPage() {
                                     <FaTrash />
                                 </button>
                             </div>
+                            <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800 text-center">
+                                <span className="text-xs text-gray-400 dark:text-gray-500">
+                                    📅 تاريخ التسجيل: {client.createdAt ? new Date(client.createdAt).toLocaleDateString('ar-EG') : 'غير متوفر'}
+                                </span>
+                            </div>
                         </div>
                     </div>
                 ))}
