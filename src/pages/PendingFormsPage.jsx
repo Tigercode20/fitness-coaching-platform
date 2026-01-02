@@ -80,37 +80,61 @@ export default function PendingFormsPage() {
             // Get data (either edited or original)
             const rawData = editMode ? { ...editData } : { ...form.data };
 
-            // ✅ Clean data - remove undefined, null, empty strings
-            const cleanData = Object.entries(rawData).reduce((acc, [key, value]) => {
+            // ✅ Field name normalization map (ClientForm -> ClientsPage format)
+            const fieldNameMap = {
+                // Map lowercase to expected format
+                fullName: 'FullName',
+                email: 'Email',
+                phone: 'PhoneNumber',
+                age: 'Age',
+                gender: 'Gender',
+                mainGoal: 'Goal',
+                goalDetails: 'GoalDetails',
+                reason: 'JoinReason',
+                frontPhoto: 'PhotoFront',
+                sidePhoto: 'PhotoSide',
+                backPhoto: 'PhotoBack',
+                healthConditions: 'HealthIssues',
+                injuries: 'Injuries',
+                medications: 'Medications',
+                experienceLevel: 'TrainingExp',
+                trainingFrequency: 'TrainingDays',
+                notes: 'Notes'
+            };
+
+            // ✅ Normalize field names and clean data
+            const normalizedData = {};
+            for (const [key, value] of Object.entries(rawData)) {
                 if (value !== undefined && value !== null && value !== '') {
-                    acc[key] = value;
+                    // Use mapped name if exists, otherwise keep original
+                    const normalizedKey = fieldNameMap[key] || key;
+                    normalizedData[normalizedKey] = value;
                 }
-                return acc;
-            }, {});
+            }
 
             console.log('📋 Raw data:', rawData);
-            console.log('🧹 Clean data:', cleanData);
+            console.log('🔄 Normalized data:', normalizedData);
 
             // Add ClientCode for new clients (sequential)
-            if (form.type === 'client' && !cleanData.ClientCode) {
-                cleanData.ClientCode = await generateClientCode();
+            if (form.type === 'client' && !normalizedData.ClientCode) {
+                normalizedData.ClientCode = await generateClientCode();
             }
 
             // Add approval metadata
-            cleanData.approvedAt = new Date().toISOString();
-            cleanData.Status = 'Active';
+            normalizedData.approvedAt = new Date().toISOString();
+            normalizedData.Status = 'Active';
 
-            console.log('📦 Final data to save:', cleanData);
+            console.log('📦 Final data to save:', normalizedData);
 
             // 1. Save to the appropriate final collection
             if (form.type === 'client') {
-                await addNewClient(cleanData);
+                await addNewClient(normalizedData);
             } else if (form.type === 'subscription') {
-                await addSubscription(cleanData);
+                await addSubscription(normalizedData);
             }
 
             // 2. Mark as approved
-            await approvePendingForm(form.id, cleanData);
+            await approvePendingForm(form.id, normalizedData);
 
             console.log('✅ Saved successfully!');
 
@@ -119,7 +143,7 @@ export default function PendingFormsPage() {
             setSelectedForm(null);
             setEditMode(false);
             setEditData({});
-            alert(`✅ تم الموافقة والحفظ بنجاح!${form.type === 'client' ? `\n\nكود العميل: ${cleanData.ClientCode}` : ''}`);
+            alert(`✅ تم الموافقة والحفظ بنجاح!${form.type === 'client' ? `\n\nكود العميل: ${normalizedData.ClientCode}` : ''}`);
         } catch (error) {
             console.error('❌ Error approving:', error);
             alert('❌ حدث خطأ أثناء الموافقة');
