@@ -102,8 +102,16 @@ export default function ClientForm() {
 
             setLoading(true) // Show loading indicator during upload
 
-            // رفع الصورة إلى Back4App
-            const name = `${Date.now()}_${imageType}_${file.name.replace(/\s/g, '_')}`;
+            // Sanitization Function: Keep only alphanumeric, dots, hashes, and underscores
+            const sanitizeFilename = (filename) => {
+                const extension = filename.split('.').pop();
+                const baseName = filename.substring(0, filename.lastIndexOf('.'));
+                const safeBaseName = baseName.replace(/[^a-zA-Z0-9]/g, '_'); // Replace non-alphanumeric with _
+                return `${safeBaseName}.${extension}`;
+            };
+
+            const safeName = sanitizeFilename(file.name);
+            const name = `${Date.now()}_${imageType}_${safeName}`;
             const parseFile = new Parse.File(name, file);
 
             const savedFile = await parseFile.save();
@@ -142,7 +150,16 @@ export default function ClientForm() {
 
             setLoading(true)
 
-            const name = `${Date.now()}_${fileType}_${file.name.replace(/\s/g, '_')}`;
+            // Sanitization Function: Keep only alphanumeric, dots, hashes, and underscores
+            const sanitizeFilename = (filename) => {
+                const extension = filename.split('.').pop();
+                const baseName = filename.substring(0, filename.lastIndexOf('.'));
+                const safeBaseName = baseName.replace(/[^a-zA-Z0-9]/g, '_'); // Replace non-alphanumeric with _
+                return `${safeBaseName}.${extension}`;
+            };
+
+            const safeName = sanitizeFilename(file.name);
+            const name = `${Date.now()}_${fileType}_${safeName}`;
             const parseFile = new Parse.File(name, file);
 
             const savedFile = await parseFile.save();
