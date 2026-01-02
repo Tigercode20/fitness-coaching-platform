@@ -176,19 +176,23 @@ export default function PendingFormsPage() {
             console.log('📦 Final data to save:', normalizedData);
 
             // 1. Save to the appropriate final collection
+            let savedId = null;
             if (form.type === 'client') {
-                await addNewClient(normalizedData);
+                const newClient = await addNewClient(normalizedData);
+                savedId = newClient.id;
             } else if (form.type === 'subscription') {
-                await addSubscription(normalizedData);
+                const newSub = await addSubscription(normalizedData);
+                savedId = newSub.id;
             }
 
             // 2. Mark as approved
-            await approvePendingForm(form.id, normalizedData);
+            await approvePendingForm(form.id, { ...normalizedData, objectId: savedId });
 
             console.log('✅ Saved successfully!');
 
             // 3. Refresh
             loadForms();
+            window.dispatchEvent(new Event('clients-updated')); // Update Sidebar Badge
             setSelectedForm(null);
             setEditMode(false);
             setEditData({});
@@ -208,6 +212,7 @@ export default function PendingFormsPage() {
         try {
             await rejectPendingForm(formId, reason || '');
             loadForms();
+            window.dispatchEvent(new Event('clients-updated')); // Update Sidebar Badge
             setSelectedForm(null);
             setEditMode(false);
             alert('✅ تم الرفض');
@@ -226,6 +231,7 @@ export default function PendingFormsPage() {
         try {
             await deletePendingForm(formId);
             loadForms();
+            window.dispatchEvent(new Event('clients-updated')); // Update Sidebar Badge
             if (selectedForm?.id === formId) {
                 setSelectedForm(null);
                 setEditMode(false);

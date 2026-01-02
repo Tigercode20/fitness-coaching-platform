@@ -75,22 +75,25 @@ export const getPendingFormById = async (id) => {
 };
 
 // Approve Form
+// Approve Form
 export const approvePendingForm = async (id, finalData) => {
     try {
-        // 1. Add to main Clients collection
-        const newClientId = await addNewClient(finalData);
+        // Note: The actual creation of Client/Subscription is handled by the UI controller (PendingFormsPage)
+        // This function just marks the form as approved.
 
-        // 2. Update status to approved
         const query = new Parse.Query(PENDING_FORM_CLASS);
         const form = await query.get(id);
 
         form.set('status', 'approved');
         form.set('approvedAt', new Date());
-        form.set('relatedClientId', newClientId);
+
+        // If finalData contains a new ID (e.g., ClientID), we could save it, but mostly we just mark approved.
+        if (finalData.objectId) {
+            form.set('relatedId', finalData.objectId);
+        }
 
         await form.save();
-
-        return newClientId;
+        return form.id;
     } catch (error) {
         throw new Error(`Error approving form: ${error.message}`);
     }
@@ -148,10 +151,12 @@ export const updatePendingForm = async (id, updatedData) => {
 };
 
 // 7️⃣ Get count of pending forms (for badges)
+// 7️⃣ Get count of pending forms (for badges)
 export const getPendingFormsCount = async () => {
     try {
-        const querySnapshot = await getDocs(collection(db, PENDING_FORMS_COLLECTION));
-        return querySnapshot.docs.filter(d => d.data().status === 'pending').length;
+        const query = new Parse.Query(PENDING_FORM_CLASS);
+        query.equalTo('status', 'pending');
+        return await query.count();
     } catch (error) {
         console.error('❌ Error getting pending count:', error);
         return 0;
