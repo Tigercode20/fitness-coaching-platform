@@ -1,4 +1,4 @@
-import Parse from 'parse';
+import Parse from 'parse/dist/parse.min.js';
 
 const PARSE_APPLICATION_ID = import.meta.env.VITE_PARSE_APPLICATION_ID;
 const PARSE_JAVASCRIPT_KEY = import.meta.env.VITE_PARSE_JAVASCRIPT_KEY;
