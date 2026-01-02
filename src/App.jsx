@@ -21,6 +21,7 @@ import SalesPage from './pages/SalesPage'
 import TrainingPlanPage from './pages/TrainingPlanPage'
 import ClientUpdatePage from './pages/ClientUpdatePage'
 import PublicFormsPage from './pages/PublicFormsPage' // Import new page
+import Settings from './pages/Settings' // Import Settings Page
 import NotFound from './components/Common/NotFound'
 import Loading from './components/Common/Loading'
 
@@ -67,6 +68,7 @@ function App() {
                     <Route path="/training-plan" element={<TrainingPlanPage />} />
                     <Route path="/client-update" element={<ClientUpdatePage />} />
                     <Route path="/public-forms" element={<PublicFormsPage />} />
+                    <Route path="/settings" element={<Settings />} />
 
                     {/* Legacy/Other */}
                     <Route path="/forms" element={<FormsPage />} />
