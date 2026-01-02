@@ -4,9 +4,11 @@
 // ============================================
 
 import { useState } from 'react'
-import { FaArrowRight, FaCheck } from 'react-icons/fa'
+import { FaArrowRight, FaCheck, FaSpinner } from 'react-icons/fa'
 import useDarkMode from '../hooks/useDarkMode'
 import { savePendingForm } from '../services/pendingFormService'
+import { storage } from '../services/firebase'
+import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 
 export default function ClientForm() {
     const { isDark } = useDarkMode()
@@ -94,18 +96,29 @@ export default function ClientForm() {
         }
     }
 
-    // الحفظ
+    // الحفظ مع رفع الصور
     const handleSave = async () => {
         setLoading(true)
         try {
-            // Prepare data for pending form (excluding File objects for now)
             const dataToSave = { ...formData }
-            // Convert File objects to null or handle file upload separately
-            Object.keys(dataToSave).forEach(key => {
-                if (dataToSave[key] instanceof File) {
-                    dataToSave[key] = `[ملف: ${dataToSave[key].name}]` // Placeholder text
+
+            // ✅ Upload images to Firebase Storage
+            const imageFields = ['frontPhoto', 'sidePhoto', 'backPhoto']
+            for (const field of imageFields) {
+                if (dataToSave[field] instanceof File) {
+                    const file = dataToSave[field]
+                    const fileName = `${Date.now()}_${file.name}`
+                    const storageRef = ref(storage, `client-images/${fileName}`)
+
+                    console.log(`📤 Uploading ${field}...`)
+                    await uploadBytes(storageRef, file)
+                    const downloadURL = await getDownloadURL(storageRef)
+
+                    // Save URL instead of File object
+                    dataToSave[field] = downloadURL
+                    console.log(`✅ ${field} uploaded:`, downloadURL)
                 }
-            })
+            }
 
             // Save to pending_forms collection for admin review
             await savePendingForm(dataToSave, 'client')
