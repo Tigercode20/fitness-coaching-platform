@@ -29,10 +29,12 @@ export default function Sidebar({ isOpen, onClose }) {
 
     useEffect(() => {
         // دالة تحديث الإحصائيات
-        const updateStats = () => {
+        const updateStats = async () => {
             try {
-                const clientsData = localStorage.getItem('clients_data')
-                const clients = clientsData ? JSON.parse(clientsData) : []
+                // We can import `getAllClients` dynamically or pass it as prop, but importing service is easier
+                // Note: ideally this should be a lightweight query like count(), but getAllClients is existing
+                const { getAllClients } = await import('../../services/clientService')
+                const clients = await getAllClients()
 
                 setStats(prev => ({
                     ...prev,
@@ -45,15 +47,12 @@ export default function Sidebar({ isOpen, onClose }) {
 
         updateStats()
 
-        // استماع لأي تغيير في التخزين (عندما يتم الحفظ في مكان آخر)
-        const handleStorageChange = () => updateStats()
-
-        window.addEventListener('storage', handleStorageChange)
-        window.addEventListener('clients-updated', handleStorageChange) // custom event
+        // Optional: Listen for an event if we want real-time update triggers from other components
+        const handleUpdates = () => updateStats()
+        window.addEventListener('clients-updated', handleUpdates)
 
         return () => {
-            window.removeEventListener('storage', handleStorageChange)
-            window.removeEventListener('clients-updated', handleStorageChange)
+            window.removeEventListener('clients-updated', handleUpdates)
         }
     }, [])
 
