@@ -188,7 +188,17 @@ export default function ClientForm() {
         setLoading(true)
 
         try {
-            console.log('📋 بدء حفظ الفورم...', formData)
+            // Validation for files if 'yes' is selected
+            if (formData.labTest === 'yes' && !formData.labFileUrl) {
+                alert('⚠️ يرجى رفع ملف التحاليل أو اختيار "لا"')
+                setLoading(false)
+                return
+            }
+            if (formData.previousDiet === 'yes' && !formData.previousDietFileUrl && false) {
+                // Note: Disable strict check for diet file as it might be optional text
+            }
+
+            console.log('📋 بدء حفظ الفورم - Raw Data:', formData)
 
             // تنظيف البيانات
             const formDataToSave = Object.entries(formData).reduce((acc, [key, value]) => {
@@ -199,6 +209,9 @@ export default function ClientForm() {
             }, {})
 
             console.log('🧹 البيانات بعد التنظيف:', formDataToSave)
+
+            if (formDataToSave.labFileUrl) console.log('✅ Lab File Found:', formDataToSave.labFileUrl)
+            if (formDataToSave.xrayFileUrl) console.log('✅ Xray File Found:', formDataToSave.xrayFileUrl)
 
             // إضافة البيانات الإضافية
             const finalData = {

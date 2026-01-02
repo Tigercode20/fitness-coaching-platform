@@ -144,6 +144,8 @@ export default function PendingFormsPage() {
                 additionalNotes: 'Notes'
             };
 
+            console.log('🏗️ Processing Approval - Raw Data Keys:', Object.keys(rawData));
+
             // ✅ Normalize field names and clean data
             const normalizedData = {};
             for (const [key, value] of Object.entries(rawData)) {
@@ -151,6 +153,11 @@ export default function PendingFormsPage() {
                     // Use mapped name if exists, otherwise keep original
                     const normalizedKey = fieldNameMap[key] || key;
                     normalizedData[normalizedKey] = value;
+
+                    // Debug File Mapping
+                    if (['frontImageUrl', 'labFileUrl', 'xrayFileUrl'].includes(key)) {
+                        console.log(`🖼️ Mapped ${key} -> ${normalizedKey} : ${value ? 'Found ✅' : 'Empty ❌'}`);
+                    }
                 }
             }
 
