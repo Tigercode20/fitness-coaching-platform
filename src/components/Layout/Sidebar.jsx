@@ -25,21 +25,24 @@ export default function Sidebar({ isOpen, onClose }) {
     const [stats, setStats] = useState({
         clientsCount: 0,
         tempSubscriptions: 18,
-        thisMonth: 6
+        thisMonth: 6,
+        pendingCount: 0
     })
 
     useEffect(() => {
         // دالة تحديث الإحصائيات
         const updateStats = async () => {
             try {
-                // We can import `getAllClients` dynamically or pass it as prop, but importing service is easier
-                // Note: ideally this should be a lightweight query like count(), but getAllClients is existing
                 const { getAllClients } = await import('../../services/clientService')
+                const { getPendingFormsCount } = await import('../../services/pendingFormService')
+
                 const clients = await getAllClients()
+                const pendingCount = await getPendingFormsCount()
 
                 setStats(prev => ({
                     ...prev,
-                    clientsCount: clients.length
+                    clientsCount: clients.length,
+                    pendingCount: pendingCount
                 }))
             } catch (e) {
                 console.error('Error loading stats', e)
@@ -120,7 +123,7 @@ export default function Sidebar({ isOpen, onClose }) {
             label: '📋 الفورمات المعلقة',
             path: '/pending-forms',
             color: 'text-amber-500',
-            badge: '🔔'
+            badge: stats.pendingCount > 0 ? stats.pendingCount : null
         },
     ]
 

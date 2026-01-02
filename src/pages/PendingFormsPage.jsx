@@ -1,15 +1,16 @@
 // ============================================
 // src/pages/PendingFormsPage.jsx
-// Pending Forms Management Page
+// Pending Forms Management Page - Enhanced
 // ============================================
 
 import { useState, useEffect } from 'react';
-import { FaCheck, FaTimes, FaTrash, FaEye, FaSpinner } from 'react-icons/fa';
+import { FaCheck, FaTimes, FaTrash, FaEye, FaSpinner, FaEdit, FaSave } from 'react-icons/fa';
 import {
     getPendingForms,
     approvePendingForm,
     rejectPendingForm,
-    deletePendingForm
+    deletePendingForm,
+    updatePendingForm
 } from '../services/pendingFormService';
 import { addNewClient } from '../services/clientService';
 import { addSubscription } from '../services/subscriptionService';
@@ -19,8 +20,12 @@ export default function PendingFormsPage() {
     const [forms, setForms] = useState([]);
     const [loading, setLoading] = useState(true);
     const [selectedForm, setSelectedForm] = useState(null);
-    const [filter, setFilter] = useState('pending'); // pending, approved, rejected
+    const [filter, setFilter] = useState('pending');
     const [processing, setProcessing] = useState(false);
+
+    // Edit Mode State
+    const [editMode, setEditMode] = useState(false);
+    const [editData, setEditData] = useState({});
 
     useEffect(() => {
         loadForms();
@@ -41,24 +46,45 @@ export default function PendingFormsPage() {
 
     const filteredForms = forms.filter(form => form.status === filter);
 
+    // Generate unique client code
+    const generateClientCode = () => {
+        const timestamp = Date.now().toString(36).toUpperCase();
+        const random = Math.random().toString(36).substring(2, 5).toUpperCase();
+        return `CL-${timestamp.slice(-4)}${random}`;
+    };
+
     const handleApprove = async (form) => {
         if (processing) return;
         setProcessing(true);
         try {
+            // Get data (either edited or original)
+            let finalData = editMode ? { ...editData } : { ...form.data };
+
+            // Add ClientCode for new clients
+            if (form.type === 'client' && !finalData.ClientCode) {
+                finalData.ClientCode = generateClientCode();
+            }
+
+            // Add approval metadata
+            finalData.approvedAt = new Date().toISOString();
+            finalData.Status = 'Active';
+
             // 1. Save to the appropriate final collection
             if (form.type === 'client') {
-                await addNewClient(form.data);
+                await addNewClient(finalData);
             } else if (form.type === 'subscription') {
-                await addSubscription(form.data);
+                await addSubscription(finalData);
             }
 
             // 2. Mark as approved
-            await approvePendingForm(form.id, form.data);
+            await approvePendingForm(form.id, finalData);
 
             // 3. Refresh
             loadForms();
             setSelectedForm(null);
-            alert('✅ تم الموافقة والحفظ بنجاح!');
+            setEditMode(false);
+            setEditData({});
+            alert(`✅ تم الموافقة والحفظ بنجاح!${form.type === 'client' ? `\n\nكود العميل: ${finalData.ClientCode}` : ''}`);
         } catch (error) {
             console.error('❌ Error approving:', error);
             alert('❌ حدث خطأ أثناء الموافقة');
@@ -75,6 +101,7 @@ export default function PendingFormsPage() {
             await rejectPendingForm(formId, reason || '');
             loadForms();
             setSelectedForm(null);
+            setEditMode(false);
             alert('✅ تم الرفض');
         } catch (error) {
             console.error('❌ Error rejecting:', error);
@@ -91,7 +118,10 @@ export default function PendingFormsPage() {
         try {
             await deletePendingForm(formId);
             loadForms();
-            if (selectedForm?.id === formId) setSelectedForm(null);
+            if (selectedForm?.id === formId) {
+                setSelectedForm(null);
+                setEditMode(false);
+            }
             alert('✅ تم الحذف');
         } catch (error) {
             console.error('❌ Error deleting:', error);
@@ -99,6 +129,44 @@ export default function PendingFormsPage() {
         } finally {
             setProcessing(false);
         }
+    };
+
+    // Start editing
+    const handleStartEdit = () => {
+        setEditData({ ...selectedForm.data });
+        setEditMode(true);
+    };
+
+    // Save edits to pending form
+    const handleSaveEdit = async () => {
+        if (processing) return;
+        setProcessing(true);
+        try {
+            await updatePendingForm(selectedForm.id, editData);
+            // Update local state
+            setForms(prev => prev.map(f =>
+                f.id === selectedForm.id ? { ...f, data: editData } : f
+            ));
+            setSelectedForm(prev => ({ ...prev, data: editData }));
+            setEditMode(false);
+            alert('✅ تم حفظ التعديلات');
+        } catch (error) {
+            console.error('❌ Error saving edit:', error);
+            alert('❌ حدث خطأ');
+        } finally {
+            setProcessing(false);
+        }
+    };
+
+    // Cancel editing
+    const handleCancelEdit = () => {
+        setEditMode(false);
+        setEditData({});
+    };
+
+    // Handle edit field change
+    const handleEditChange = (key, value) => {
+        setEditData(prev => ({ ...prev, [key]: value }));
     };
 
     const getStatusBadge = (status) => {
@@ -120,6 +188,23 @@ export default function PendingFormsPage() {
             case 'subscription': return '💳';
             default: return '📝';
         }
+    };
+
+    // Translate field keys
+    const translateKey = (key) => {
+        const translations = {
+            fullName: 'الاسم الكامل', FullName: 'الاسم الكامل',
+            email: 'البريد الإلكتروني', Email: 'البريد الإلكتروني',
+            phone: 'رقم الهاتف', PhoneNumber: 'رقم الهاتف',
+            age: 'العمر', Age: 'العمر',
+            gender: 'الجنس', Gender: 'الجنس',
+            mainGoal: 'الهدف الرئيسي', Goal: 'الهدف', goal: 'الهدف',
+            notes: 'ملاحظات', Notes: 'ملاحظات',
+            healthConditions: 'الحالات الصحية',
+            injuries: 'الإصابات',
+            medications: 'الأدوية',
+        };
+        return translations[key] || key;
     };
 
     if (loading) {
@@ -151,7 +236,7 @@ export default function PendingFormsPage() {
                     {['pending', 'approved', 'rejected'].map(status => (
                         <button
                             key={status}
-                            onClick={() => setFilter(status)}
+                            onClick={() => { setFilter(status); setSelectedForm(null); setEditMode(false); }}
                             className={`px-4 py-2 rounded-lg transition font-medium ${filter === status
                                 ? 'bg-primary text-white shadow-lg shadow-primary/30'
                                 : 'bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-primary'
@@ -177,7 +262,7 @@ export default function PendingFormsPage() {
                             filteredForms.map(form => (
                                 <div
                                     key={form.id}
-                                    onClick={() => setSelectedForm(form)}
+                                    onClick={() => { setSelectedForm(form); setEditMode(false); }}
                                     className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:shadow-md ${selectedForm?.id === form.id
                                         ? 'border-primary bg-primary/5 dark:bg-primary/10'
                                         : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
@@ -208,41 +293,89 @@ export default function PendingFormsPage() {
                     {/* Right: Preview & Actions */}
                     {selectedForm ? (
                         <div className="bg-white dark:bg-gray-800 rounded-xl p-6 border border-gray-200 dark:border-gray-700 sticky top-4 self-start">
-                            <h2 className="text-xl font-bold mb-4 text-gray-900 dark:text-white flex items-center gap-2">
-                                <FaEye /> معاينة البيانات
-                            </h2>
-
-                            {/* Form Preview Component */}
-                            <FormPreview form={selectedForm} />
-
-                            {/* Actions */}
-                            {selectedForm.status === 'pending' && (
-                                <div className="mt-6 flex flex-wrap gap-3">
+                            <div className="flex items-center justify-between mb-4">
+                                <h2 className="text-xl font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                                    {editMode ? <><FaEdit /> تعديل البيانات</> : <><FaEye /> معاينة البيانات</>}
+                                </h2>
+                                {selectedForm.status === 'pending' && !editMode && (
                                     <button
-                                        onClick={() => handleApprove(selectedForm)}
-                                        disabled={processing}
-                                        className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg transition font-bold flex items-center justify-center gap-2"
+                                        onClick={handleStartEdit}
+                                        className="px-3 py-1 bg-blue-500 hover:bg-blue-600 text-white text-sm rounded-lg flex items-center gap-1"
                                     >
-                                        {processing ? <FaSpinner className="animate-spin" /> : <FaCheck />}
-                                        موافقة وحفظ
+                                        <FaEdit /> تعديل
                                     </button>
-                                    <button
-                                        onClick={() => handleReject(selectedForm.id)}
-                                        disabled={processing}
-                                        className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg transition font-bold flex items-center justify-center gap-2"
-                                    >
-                                        <FaTimes /> رفض
-                                    </button>
+                                )}
+                            </div>
+
+                            {/* Edit Mode or Preview */}
+                            {editMode ? (
+                                <div className="space-y-3 max-h-80 overflow-y-auto">
+                                    {Object.entries(editData).map(([key, value]) => (
+                                        <div key={key} className="flex flex-col gap-1">
+                                            <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                                {translateKey(key)}
+                                            </label>
+                                            <input
+                                                type="text"
+                                                value={value || ''}
+                                                onChange={(e) => handleEditChange(key, e.target.value)}
+                                                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm"
+                                            />
+                                        </div>
+                                    ))}
                                 </div>
+                            ) : (
+                                <FormPreview form={selectedForm} />
                             )}
 
-                            <button
-                                onClick={() => handleDelete(selectedForm.id)}
-                                disabled={processing}
-                                className="w-full mt-3 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition flex items-center justify-center gap-2"
-                            >
-                                <FaTrash /> حذف نهائي
-                            </button>
+                            {/* Actions */}
+                            {editMode ? (
+                                <div className="mt-6 flex gap-3">
+                                    <button
+                                        onClick={handleSaveEdit}
+                                        disabled={processing}
+                                        className="flex-1 px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold flex items-center justify-center gap-2"
+                                    >
+                                        <FaSave /> حفظ التعديلات
+                                    </button>
+                                    <button
+                                        onClick={handleCancelEdit}
+                                        className="flex-1 px-4 py-3 bg-gray-300 hover:bg-gray-400 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-800 dark:text-white rounded-lg font-bold"
+                                    >
+                                        إلغاء
+                                    </button>
+                                </div>
+                            ) : (
+                                <>
+                                    {selectedForm.status === 'pending' && (
+                                        <div className="mt-6 flex flex-wrap gap-3">
+                                            <button
+                                                onClick={() => handleApprove(selectedForm)}
+                                                disabled={processing}
+                                                className="flex-1 px-4 py-3 bg-green-600 hover:bg-green-700 disabled:bg-green-400 text-white rounded-lg transition font-bold flex items-center justify-center gap-2"
+                                            >
+                                                {processing ? <FaSpinner className="animate-spin" /> : <FaCheck />}
+                                                موافقة وحفظ
+                                            </button>
+                                            <button
+                                                onClick={() => handleReject(selectedForm.id)}
+                                                disabled={processing}
+                                                className="flex-1 px-4 py-3 bg-red-600 hover:bg-red-700 disabled:bg-red-400 text-white rounded-lg transition font-bold flex items-center justify-center gap-2"
+                                            >
+                                                <FaTimes /> رفض
+                                            </button>
+                                        </div>
+                                    )}
+
+                                    <button
+                                        onClick={() => handleDelete(selectedForm.id)}
+                                        disabled={processing}
+                                        className="w-full mt-3 px-4 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded-lg transition flex items-center justify-center gap-2"
+                                    >
+                                        <FaTrash /> حذف نهائي
+                                    </button>
+                                </>
+                            )}
                         </div>
                     ) : (
                         <div className="hidden lg:flex items-center justify-center bg-white dark:bg-gray-800 rounded-xl p-12 border border-gray-200 dark:border-gray-700 text-gray-500 dark:text-gray-400">
