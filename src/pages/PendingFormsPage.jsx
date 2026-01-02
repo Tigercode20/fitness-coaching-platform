@@ -12,7 +12,7 @@ import {
     deletePendingForm,
     updatePendingForm
 } from '../services/pendingFormService';
-import { addNewClient } from '../services/clientService';
+import { addNewClient, getAllClients } from '../services/clientService';
 import { addSubscription } from '../services/subscriptionService';
 import FormPreview from '../components/FormPreview';
 
@@ -46,11 +46,31 @@ export default function PendingFormsPage() {
 
     const filteredForms = forms.filter(form => form.status === filter);
 
-    // Generate unique client code
-    const generateClientCode = () => {
-        const timestamp = Date.now().toString(36).toUpperCase();
-        const random = Math.random().toString(36).substring(2, 5).toUpperCase();
-        return `CL-${timestamp.slice(-4)}${random}`;
+    // Generate sequential client code (C-1001, C-1002, etc.)
+    const generateClientCode = async () => {
+        try {
+            const clients = await getAllClients();
+
+            // Extract all existing codes that match C-XXXX pattern
+            const codes = clients
+                .map(c => c.ClientCode || c.clientCode)
+                .filter(code => code && /^C-\d+$/.test(code))
+                .map(code => parseInt(code.replace('C-', ''), 10));
+
+            // Find the highest code number, default to 1000 if none exist
+            const maxCode = codes.length > 0 ? Math.max(...codes) : 1000;
+
+            // Generate next code
+            const nextCode = `C-${maxCode + 1}`;
+            console.log('📊 Existing codes:', codes.length, 'Max:', maxCode, 'Next:', nextCode);
+            return nextCode;
+        } catch (error) {
+            console.error('❌ Error generating code:', error);
+            // Fallback to timestamp-based if query fails
+            const fallback = `C-${Date.now().toString().slice(-6)}`;
+            console.log('⚠️ Using fallback code:', fallback);
+            return fallback;
+        }
     };
 
     const handleApprove = async (form) => {
@@ -71,9 +91,9 @@ export default function PendingFormsPage() {
             console.log('📋 Raw data:', rawData);
             console.log('🧹 Clean data:', cleanData);
 
-            // Add ClientCode for new clients
+            // Add ClientCode for new clients (sequential)
             if (form.type === 'client' && !cleanData.ClientCode) {
-                cleanData.ClientCode = generateClientCode();
+                cleanData.ClientCode = await generateClientCode();
             }
 
             // Add approval metadata
