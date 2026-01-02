@@ -229,7 +229,7 @@ export default function SalesPage() {
                                             </div>
                                             <div>
                                                 <span className="font-semibold block">تسجيل البيانات:</span>
-                                                <p>{selectedClient.createdAt ? new Date(selectedClient.createdAt).toLocaleString('ar-EG') : 'N/A'}</p>
+                                                <p>{selectedClient.createdAt ? new Date(selectedClient.createdAt).toISOString().split('T')[0] : 'N/A'}</p>
                                             </div>
                                         </div>
                                     </div>
@@ -453,7 +453,7 @@ export default function SalesPage() {
                                                 {sale.get('amountPaid')} {sale.get('currency')}
                                             </p>
                                             <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                {new Date(sale.createdAt).toLocaleString('ar-EG')}
+                                                {new Date(sale.createdAt).toISOString().split('T')[0]}
                                             </p>
                                         </div>
                                     ))
@@ -463,6 +463,6 @@ export default function SalesPage() {
                     </div>
                 </div>
             </div>
-        </div>
+        </div >
     )
 }

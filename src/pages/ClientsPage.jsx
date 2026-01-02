@@ -456,9 +456,9 @@ export default function ClientsPage() {
                                 </button>
                             </div>
                             <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800 text-center flex justify-between px-2 text-xs text-gray-400 dark:text-gray-500">
-                                <span>📅 تسجيل: {client.createdAt ? new Date(client.createdAt).toLocaleDateString('ar-EG') : 'غير متوفر'}</span>
+                                <span>📅 تسجيل: {client.createdAt ? new Date(client.createdAt).toISOString().split('T')[0] : 'غير متوفر'}</span>
                                 {client.latestSaleDate && (
-                                    <span className="text-blue-500">🛒 اشتراك: {new Date(client.latestSaleDate).toLocaleDateString('ar-EG')}</span>
+                                    <span className="text-blue-500">🛒 اشتراك: {new Date(client.latestSaleDate).toISOString().split('T')[0]}</span>
                                 )}
                             </div>
                         </div>
