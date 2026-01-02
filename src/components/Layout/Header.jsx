@@ -9,7 +9,7 @@ import { logOut } from '../../services/authService'
 import { useState } from 'react'
 import ThemeToggle from '../Common/ThemeToggle'
 
-export default function Header({ user }) {
+export default function Header({ user, onMenuClick }) {
     const navigate = useNavigate()
     const [menuOpen, setMenuOpen] = useState(false)
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
@@ -81,15 +81,13 @@ export default function Header({ user }) {
                     <div className="md:hidden flex items-center space-x-2">
                         <ThemeToggle />
                         <button
-                            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+                            onClick={() => {
+                                if (onMenuClick) onMenuClick() // Open sidebar
+                            }}
                             className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 
                 transition-colors duration-200"
                         >
-                            {mobileMenuOpen ? (
-                                <FaTimes className="text-dark dark:text-gray-200" />
-                            ) : (
-                                <FaBars className="text-dark dark:text-gray-200" />
-                            )}
+                            <FaBars className="text-dark dark:text-gray-200" />
                         </button>
                     </div>
                 </div>
