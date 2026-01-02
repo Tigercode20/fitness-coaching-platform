@@ -105,10 +105,14 @@ export const isAuthenticated = () => {
     }
 }
 
+// Alias for backward compatibility (Header.jsx uses logOut)
+export const logOut = signOut;
+
 export default {
     signIn,
     signUp,
     signOut,
+    logOut, // Add alias to default export
     getCurrentUser,
     isAuthenticated
 }
