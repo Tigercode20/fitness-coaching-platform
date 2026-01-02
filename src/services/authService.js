@@ -39,7 +39,9 @@ export const signIn = async (email, password) => {
             throw new Error('Parse is not initialized. Check your .env.local configuration.')
         }
 
-        const user = await Parse.User.logIn(email, password)
+        // Force lowercase to ensure case-insensitive login
+        const normalizedEmail = email.toLowerCase();
+        const user = await Parse.User.logIn(normalizedEmail, password)
         console.log('✅ Logged in:', user.get('email'))
         notifyAuthChange(); // Notify listeners
         return user
@@ -57,8 +59,9 @@ export const signUp = async (email, password, userData) => {
         }
 
         const user = new Parse.User()
-        user.set('username', email)
-        user.set('email', email)
+        const normalizedEmail = email.toLowerCase();
+        user.set('username', normalizedEmail)
+        user.set('email', normalizedEmail)
         user.set('password', password)
 
         // Handle userData object if passed (user's code had fullName arg, but component passes object sometimes)
