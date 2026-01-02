@@ -58,33 +58,48 @@ export default function PendingFormsPage() {
         setProcessing(true);
         try {
             // Get data (either edited or original)
-            let finalData = editMode ? { ...editData } : { ...form.data };
+            const rawData = editMode ? { ...editData } : { ...form.data };
+
+            // ✅ Clean data - remove undefined, null, empty strings
+            const cleanData = Object.entries(rawData).reduce((acc, [key, value]) => {
+                if (value !== undefined && value !== null && value !== '') {
+                    acc[key] = value;
+                }
+                return acc;
+            }, {});
+
+            console.log('📋 Raw data:', rawData);
+            console.log('🧹 Clean data:', cleanData);
 
             // Add ClientCode for new clients
-            if (form.type === 'client' && !finalData.ClientCode) {
-                finalData.ClientCode = generateClientCode();
+            if (form.type === 'client' && !cleanData.ClientCode) {
+                cleanData.ClientCode = generateClientCode();
             }
 
             // Add approval metadata
-            finalData.approvedAt = new Date().toISOString();
-            finalData.Status = 'Active';
+            cleanData.approvedAt = new Date().toISOString();
+            cleanData.Status = 'Active';
+
+            console.log('📦 Final data to save:', cleanData);
 
             // 1. Save to the appropriate final collection
             if (form.type === 'client') {
-                await addNewClient(finalData);
+                await addNewClient(cleanData);
             } else if (form.type === 'subscription') {
-                await addSubscription(finalData);
+                await addSubscription(cleanData);
             }
 
             // 2. Mark as approved
-            await approvePendingForm(form.id, finalData);
+            await approvePendingForm(form.id, cleanData);
+
+            console.log('✅ Saved successfully!');
 
             // 3. Refresh
             loadForms();
             setSelectedForm(null);
             setEditMode(false);
             setEditData({});
-            alert(`✅ تم الموافقة والحفظ بنجاح!${form.type === 'client' ? `\n\nكود العميل: ${finalData.ClientCode}` : ''}`);
+            alert(`✅ تم الموافقة والحفظ بنجاح!${form.type === 'client' ? `\n\nكود العميل: ${cleanData.ClientCode}` : ''}`);
         } catch (error) {
             console.error('❌ Error approving:', error);
             alert('❌ حدث خطأ أثناء الموافقة');
