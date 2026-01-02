@@ -173,3 +173,28 @@ export const deleteSale = async (saleId) => {
         throw error
     }
 }
+
+// جلب إحصائيات المبيعات
+export const getSalesStatistics = async () => {
+    try {
+        const query = new Parse.Query('Sale')
+        const allSales = await query.find()
+
+        const stats = {
+            totalCount: allSales.length,
+            totalRevenue: allSales.reduce((sum, sale) => sum + (sale.get('amountPaid') || 0), 0),
+            newSubscriptions: allSales.filter(s => s.get('subscriptionType') === 'new').length,
+            renewals: allSales.filter(s => s.get('subscriptionType') === 'renewal').length,
+            packages: {
+                basic: allSales.filter(s => s.get('package') === 'basic').length,
+                standard: allSales.filter(s => s.get('package') === 'standard').length,
+                premium: allSales.filter(s => s.get('package') === 'premium').length
+            }
+        }
+
+        return stats
+    } catch (error) {
+        console.error('❌ خطأ في الإحصائيات:', error.message)
+        throw error
+    }
+}

@@ -1,181 +1,239 @@
-// ============================================
-// src/pages/DashboardOverview.jsx
-// Dashboard Home (Stats & Overview) - Live Data
-// ============================================
-
 import { useState, useEffect } from 'react'
-import { FaUsers, FaCreditCard, FaClipboardList, FaChartLine } from 'react-icons/fa'
 import { getAllClients } from '../services/clientService'
-import { getAllSubscriptions } from '../services/subscriptionService'
-import { getPendingForms } from '../services/pendingFormService'
+import { getSalesBy } from '../services/salesService'
+import { Link } from 'react-router-dom'
 
 export default function DashboardOverview() {
-    const [loading, setLoading] = useState(true)
+    const [clients, setClients] = useState([])
+    const [sales, setSales] = useState([])
     const [stats, setStats] = useState({
-        clientsCount: 0,
-        activeSubsCount: 0,
-        pendingFormsCount: 0,
-        revenue: 0
+        totalClients: 0,
+        totalSubscriptions: 0,
+        totalRevenue: 0,
+        avgDuration: 0
     })
-    const [recentClients, setRecentClients] = useState([])
-    const [recentSubs, setRecentSubs] = useState([])
 
     useEffect(() => {
-        fetchData()
+        loadDashboardData()
     }, [])
 
-    const fetchData = async () => {
+    const loadDashboardData = async () => {
         try {
-            setLoading(true)
-            const [clients, subs, pending] = await Promise.all([
-                getAllClients(),
-                getAllSubscriptions(),
-                getPendingForms()
-            ])
+            // جلب العملاء
+            const clientsList = await getAllClients()
+            // clientsList contains objects: { id, FullName, Email, PhoneNumber, ClientCode, createdAt, ... }
+            const recentClients = clientsList
+                .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+                .slice(0, 5)
+            setClients(recentClients)
 
-            // Calculate Stats
-            const clientsCount = clients.length
-            const activeSubsCount = subs.filter(s => s.status === 'active' || s.Status === 'Active').length
-            const pendingFormsCount = pending.filter(p => p.status === 'pending').length
+            // جلب المبيعات
+            const salesList = await getSalesBy()
+            // salesList contains Parse Objects: need .get()
+            const recentSales = salesList.slice(0, 5)
+            setSales(recentSales)
 
-            // Calculate Revenue (Simple sum of price field)
-            const revenue = subs.reduce((total, sub) => {
-                const price = parseFloat(sub.price || sub.Price || 0)
-                return total + (isNaN(price) ? 0 : price)
-            }, 0)
+            // حساب الإحصائيات من البيانات الحقيقية
+            const totalRevenue = salesList.reduce((sum, sale) => sum + (sale.get('amountPaid') || 0), 0)
+            const totalDuration = salesList.reduce((sum, sale) => sum + (sale.get('duration') || 0), 0)
+            const avgDur = salesList.length > 0 ? (totalDuration / salesList.length).toFixed(1) : 0
 
             setStats({
-                clientsCount,
-                activeSubsCount,
-                pendingFormsCount,
-                revenue
+                totalClients: clientsList.length,
+                totalSubscriptions: salesList.length,
+                totalRevenue: totalRevenue.toFixed(2),
+                avgDuration: avgDur
             })
-
-            // Recent Activity (Top 5)
-            setRecentClients(clients.slice(0, 5))
-            setRecentSubs(subs.slice(0, 5))
-
         } catch (error) {
-            console.error("Error loading dashboard data:", error)
-        } finally {
-            setLoading(false)
+            console.error('❌ خطأ في تحميل البيانات:', error)
         }
     }
 
-    const statCards = [
-        {
-            icon: FaUsers,
-            label: 'العملاء',
-            value: stats.clientsCount,
-            color: 'text-blue-500'
-        },
-        {
-            icon: FaCreditCard,
-            label: 'الاشتراكات النشطة',
-            value: stats.activeSubsCount,
-            color: 'text-green-500'
-        },
-        {
-            icon: FaClipboardList,
-            label: 'الفورمات المعلقة',
-            value: stats.pendingFormsCount,
-            color: 'text-orange-500'
-        },
-        {
-            icon: FaChartLine,
-            label: 'الإيرادات',
-            value: `${stats.revenue.toLocaleString()} EGP`,
-            color: 'text-purple-500'
-        },
-    ]
-
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[50vh]">
-                <div className="animate-spin text-4xl text-primary">⏳</div>
-            </div>
-        )
-    }
-
     return (
-        <>
-            {/* Welcome Section */}
-            <div className="mb-8">
-                <h1 className="text-3xl font-bold text-dark dark:text-white mb-2">
-                    أهلاً بك! 👋
-                </h1>
-                <p className="text-gray-600 dark:text-gray-400">
-                    هنا يمكنك إدارة عملاؤك واشتراكاتهم والخطط الخاصة بهم
-                </p>
-            </div>
+        <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8 transition-colors duration-300">
+            <div className="max-w-7xl mx-auto">
+                {/* الرأس */}
+                <div className="mb-8">
+                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">🏠 لوحة التحكم الرئيسية</h1>
+                    <p className="text-gray-600 dark:text-gray-400">إدارة شاملة لعملائك واشتراكاتك ومبيعاتك</p>
+                </div>
 
-            {/* Stats Grid */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                {statCards.map((stat, index) => {
-                    const Icon = stat.icon
-                    return (
-                        <div key={index} className="card bg-white dark:bg-gray-800 shadow-sm dark:shadow-none border dark:border-gray-700 transition-colors duration-300">
-                            <div className="flex items-center justify-between p-6">
-                                <div>
-                                    <p className="text-gray-600 dark:text-gray-400 text-sm">{stat.label}</p>
-                                    <p className="text-2xl font-bold text-dark dark:text-white mt-2">
-                                        {stat.value}
-                                    </p>
-                                </div>
-                                <div className={`text-3xl ${stat.color}`}>
-                                    <Icon />
-                                </div>
+                {/* البطاقات الإحصائية */}
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    {/* إجمالي العملاء */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition dark:border-gray-700">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-gray-600 dark:text-gray-400 text-sm font-semibold">👥 إجمالي العملاء</p>
+                                <p className="text-4xl font-bold text-gray-900 dark:text-white mt-2">{stats.totalClients}</p>
                             </div>
+                            <span className="text-4xl">👥</span>
                         </div>
-                    )
-                })}
-            </div>
+                        <p className="text-blue-600 dark:text-blue-400 text-sm mt-4">عدد العملاء المسجلين</p>
+                    </div>
 
-            {/* Quick Actions */}
-            <div className="grid md:grid-cols-2 gap-6">
-                {/* Recent Clients */}
-                <div className="card bg-white dark:bg-gray-800 shadow-sm dark:shadow-none border dark:border-gray-700 transition-colors duration-300 p-6">
-                    <h3 className="text-xl font-semibold text-dark dark:text-white mb-4 border-b pb-2 dark:border-gray-700">
-                        العملاء الأخيرين
-                    </h3>
-                    <div className="space-y-3">
-                        {recentClients.length > 0 ? (
-                            recentClients.map(client => (
-                                <div key={client.id} className="flex justify-between items-center py-2 border-b dark:border-gray-700 last:border-0">
-                                    <span className="text-gray-800 dark:text-gray-200">{client.FullName || client.fullName || 'بدون اسم'}</span>
-                                    <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded text-gray-500">{client.ClientCode || '-'}</span>
-                                </div>
-                            ))
-                        ) : (
-                            <p className="text-gray-500 text-center py-4">لا توجد بيانات</p>
-                        )}
+                    {/* إجمالي الاشتراكات */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition dark:border-gray-700">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-gray-600 dark:text-gray-400 text-sm font-semibold">📋 إجمالي الاشتراكات</p>
+                                <p className="text-4xl font-bold text-gray-900 dark:text-white mt-2">{stats.totalSubscriptions}</p>
+                            </div>
+                            <span className="text-4xl">📋</span>
+                        </div>
+                        <p className="text-green-600 dark:text-green-400 text-sm mt-4">عدد الاشتراكات المنشأة</p>
+                    </div>
+
+                    {/* إجمالي الإيرادات */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-purple-500 hover:shadow-xl transition dark:border-gray-700">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-gray-600 dark:text-gray-400 text-sm font-semibold">💰 إجمالي الإيرادات</p>
+                                <p className="text-4xl font-bold text-gray-900 dark:text-white mt-2">{stats.totalRevenue}</p>
+                            </div>
+                            <span className="text-4xl">💰</span>
+                        </div>
+                        <p className="text-purple-600 dark:text-purple-400 text-sm mt-4">من جميع الاشتراكات</p>
+                    </div>
+
+                    {/* متوسط المدة */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-orange-500 hover:shadow-xl transition dark:border-gray-700">
+                        <div className="flex justify-between items-start">
+                            <div>
+                                <p className="text-gray-600 dark:text-gray-400 text-sm font-semibold">⌛ متوسط المدة</p>
+                                <p className="text-4xl font-bold text-gray-900 dark:text-white mt-2">{stats.avgDuration}</p>
+                            </div>
+                            <span className="text-4xl">⌛</span>
+                        </div>
+                        <p className="text-orange-600 dark:text-orange-400 text-sm mt-4">عدد الشهور</p>
                     </div>
                 </div>
 
-                {/* Recent Subscriptions */}
-                <div className="card bg-white dark:bg-gray-800 shadow-sm dark:shadow-none border dark:border-gray-700 transition-colors duration-300 p-6">
-                    <h3 className="text-xl font-semibold text-dark dark:text-white mb-4 border-b pb-2 dark:border-gray-700">
-                        الاشتراكات الحديثة
-                    </h3>
-                    <div className="space-y-3">
-                        {recentSubs.length > 0 ? (
-                            recentSubs.map(sub => (
-                                <div key={sub.id} className="flex justify-between items-center py-2 border-b dark:border-gray-700 last:border-0">
-                                    <div>
-                                        <p className="text-gray-800 dark:text-gray-200 text-sm font-medium">{sub.clientName || 'مشترك'}</p>
-                                        <p className="text-xs text-gray-400">{sub.package || 'باقة'}</p>
+                {/* الأقسام الرئيسية */}
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* العملاء الأخيرين */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">👥 العملاء الأخيرين</h2>
+                            <Link
+                                to="/clients"
+                                className="text-blue-500 dark:text-blue-400 font-semibold hover:text-blue-700 transition"
+                            >
+                                عرض الكل →
+                            </Link>
+                        </div>
+
+                        {clients.length === 0 ? (
+                            <p className="text-gray-500 dark:text-gray-400 text-center py-8">لا يوجد عملاء حتى الآن</p>
+                        ) : (
+                            <div className="space-y-4">
+                                {clients.map(client => (
+                                    <div key={client.id} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-l-4 border-blue-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                                        <div className="flex justify-between items-start">
+                                            <div>
+                                                <h3 className="font-bold text-gray-900 dark:text-white text-lg">{client.FullName || 'بدون اسم'}</h3>
+                                                <p className="text-sm text-gray-600 dark:text-gray-300">📧 {client.Email}</p>
+                                                <p className="text-sm text-gray-600 dark:text-gray-300">🔢 {client.PhoneNumber}</p>
+                                            </div>
+                                            <span className="text-xs bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300 px-3 py-1 rounded-full font-semibold">
+                                                🆔 {client.ClientCode}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                            📅 {new Date(client.createdAt).toLocaleString('ar-EG')}
+                                        </p>
                                     </div>
-                                    <span className={`text-xs px-2 py-1 rounded ${sub.status === 'active' ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
-                                        {sub.status || '-'}
-                                    </span>
-                                </div>
-                            ))
-                        ) : (
-                            <p className="text-gray-500 text-center py-4">لا توجد بيانات</p>
+                                ))}
+                            </div>
                         )}
+
+                        <Link
+                            to="/clients"
+                            className="mt-6 w-full inline-block text-center bg-blue-500 text-white py-2 rounded-lg font-semibold hover:bg-blue-600 transition"
+                        >
+                            👁️ عرض جميع العملاء
+                        </Link>
+                    </div>
+
+                    {/* الاشتراكات الحديثة */}
+                    <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition">
+                        <div className="flex justify-between items-center mb-6">
+                            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">📋 الاشتراكات الحديثة</h2>
+                            <Link
+                                to="/subscriptions"
+                                className="text-green-500 dark:text-green-400 font-semibold hover:text-green-700 transition"
+                            >
+                                عرض الكل →
+                            </Link>
+                        </div>
+
+                        {sales.length === 0 ? (
+                            <p className="text-gray-500 dark:text-gray-400 text-center py-8">لا توجد اشتراكات حتى الآن</p>
+                        ) : (
+                            <div className="space-y-4">
+                                {sales.map(sale => (
+                                    <div key={sale.id} className="p-4 bg-gray-50 dark:bg-gray-700/50 rounded-lg border-l-4 border-green-500 hover:bg-gray-100 dark:hover:bg-gray-700 transition">
+                                        <div className="flex justify-between items-start">
+                                            <div className="flex-1">
+                                                <h3 className="font-bold text-gray-900 dark:text-white text-lg">{sale.get('clientName')}</h3>
+                                                <p className="text-sm text-gray-600 dark:text-gray-300">💵 {sale.get('amountPaid')} {sale.get('currency')}</p>
+                                                <p className="text-sm text-gray-600 dark:text-gray-300">📦 {sale.get('package')}</p>
+                                            </div>
+                                            <span className={`text-xs px-3 py-1 rounded-full font-semibold ${sale.get('subscriptionType') === 'new'
+                                                    ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                                                    : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
+                                                }`}>
+                                                {sale.get('subscriptionType') === 'new' ? '✨ جديد' : '🔄 تجديد'}
+                                            </span>
+                                        </div>
+                                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                                            {/* Handle optional timestamp or fallback to createdAt */}
+                                            ⏰ {sale.get('timestamp') ? new Date(sale.get('timestamp')).toLocaleString('ar-EG') : new Date(sale.createdAt).toLocaleString('ar-EG')}
+                                        </p>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <Link
+                            to="/subscriptions"
+                            className="mt-6 w-full inline-block text-center bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600 transition"
+                        >
+                            📊 عرض جميع الاشتراكات
+                        </Link>
                     </div>
                 </div>
+
+                {/* أزرار الإجراءات السريعة */}
+                <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <Link
+                        to="/new-client"
+                        className="bg-gradient-to-r from-blue-500 to-blue-600 text-white p-8 rounded-lg shadow-lg hover:shadow-xl transition text-center"
+                    >
+                        <span className="text-4xl block mb-4">➕</span>
+                        <h3 className="text-xl font-bold">إضافة عميل جديد</h3>
+                        <p className="text-blue-100 text-sm mt-2">انقر لإضافة عميل جديد</p>
+                    </Link>
+
+                    <Link
+                        to="/sales"
+                        className="bg-gradient-to-r from-green-500 to-green-600 text-white p-8 rounded-lg shadow-lg hover:shadow-xl transition text-center"
+                    >
+                        <span className="text-4xl block mb-4">📊</span>
+                        <h3 className="text-xl font-bold">تسجيل مبيعة جديدة</h3>
+                        <p className="text-green-100 text-sm mt-2">انقر لإضافة اشتراك جديد</p>
+                    </Link>
+
+                    <Link
+                        to="/subscriptions"
+                        className="bg-gradient-to-r from-purple-500 to-purple-600 text-white p-8 rounded-lg shadow-lg hover:shadow-xl transition text-center"
+                    >
+                        <span className="text-4xl block mb-4">📋</span>
+                        <h3 className="text-xl font-bold">عرض الاشتراكات</h3>
+                        <p className="text-purple-100 text-sm mt-2">انقر لإدارة الاشتراكات</p>
+                    </Link>
+                </div>
             </div>
-        </>
+        </div>
     )
 }

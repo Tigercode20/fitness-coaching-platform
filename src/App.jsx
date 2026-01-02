@@ -6,6 +6,8 @@
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
 import { getCurrentUser, isAuthenticated, onAuthChange } from './services/authService'
+import { ToastContainer } from 'react-toastify'
+import 'react-toastify/dist/ReactToastify.css'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -132,6 +134,7 @@ function App() {
     return (
         <ErrorBoundary>
             <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+                <ToastContainer rtl position="top-right" autoClose={3000} theme="colored" />
                 <Routes>
                     {/* Public Routes */}
                     <Route path="/" element={user ? <Navigate to="/dashboard" /> : <Home />} />
