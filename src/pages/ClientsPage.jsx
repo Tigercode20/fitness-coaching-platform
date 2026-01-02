@@ -415,283 +415,303 @@ export default function ClientsPage() {
                                         </span>
                                     </div>
                                 </div>
-                                <div className={`w-3 h-3 rounded-full ${client.status === 'active' ? 'bg-green-500' : 'bg-gray-300'}`} title="الحالة"></div>
                             </div>
+                            <div className={`w-3 h-3 rounded-full ${(() => {
+                                    if (client.status !== 'active') return 'bg-gray-300';
+                                    if (!client.subscriptionEnd) return 'bg-green-500';
 
-                            <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
-                                <div className="flex justify-between">
-                                    <span>📞 الهاتف:</span>
-                                    <span dir="ltr">{client.PhoneNumber || '-'}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>🎯 الهدف:</span>
-                                    <span className="line-clamp-1 max-w-[150px]">{client.Goal || '-'}</span>
-                                </div>
-                                <div className="flex justify-between">
-                                    <span>⚖️ الوزن:</span>
-                                    <span>{client.Weight ? `${client.Weight} كجم` : '-'}</span>
-                                </div>
-                            </div>
+                                    const end = new Date(client.subscriptionEnd);
+                                    const now = new Date();
+                                    const diffTime = end - now;
+                                    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-                            <div className="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
-                                <button
-                                    onClick={() => setSelectedClient(client)}
-                                    className="flex-1 flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition"
-                                >
-                                    <FaEye /> التفاصيل
-                                </button>
-                                <button
-                                    onClick={() => setEditingClient(client)}
-                                    className="p-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition"
-                                    title="تعديل"
-                                >
-                                    <FaEdit />
-                                </button>
-                                <button
-                                    onClick={() => handleDelete(client.id)}
-                                    className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition"
-                                    title="حذف"
-                                >
-                                    <FaTrash />
-                                </button>
+                                    if (diffDays <= 0) return 'bg-red-500';
+                                    if (diffDays <= 10) return 'bg-yellow-500';
+                                    return 'bg-green-500';
+                                })()
+                                }`} title="الحالة"></div>
+                        </div>
+
+                        <div className="space-y-2 text-sm text-gray-600 dark:text-gray-400 mb-6">
+                            <div className="flex justify-between">
+                                <span>📞 الهاتف:</span>
+                                <span dir="ltr">{client.PhoneNumber || '-'}</span>
                             </div>
-                            <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800 text-center flex justify-between px-2 text-xs text-gray-400 dark:text-gray-500">
-                                <span>📅 تسجيل: {client.createdAt ? new Date(client.createdAt).toISOString().split('T')[0] : 'غير متوفر'}</span>
-                                {client.latestSaleDate && (
-                                    <span className="text-blue-500">🛒 اشتراك: {new Date(client.latestSaleDate).toISOString().split('T')[0]}</span>
-                                )}
+                            <div className="flex justify-between">
+                                <span>🎯 الهدف:</span>
+                                <span className="line-clamp-1 max-w-[150px]">{client.Goal || '-'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                                <span>⚖️ الوزن:</span>
+                                <span>{client.Weight ? `${client.Weight} كجم` : '-'}</span>
                             </div>
                         </div>
+
+                        <div className="flex gap-2 pt-4 border-t border-gray-100 dark:border-gray-800">
+                            <button
+                                onClick={() => setSelectedClient(client)}
+                                className="flex-1 flex items-center justify-center gap-2 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 py-2 rounded-lg hover:bg-blue-100 dark:hover:bg-blue-900/40 transition"
+                            >
+                                <FaEye /> التفاصيل
+                            </button>
+                            <button
+                                onClick={() => setEditingClient(client)}
+                                className="p-2 bg-green-50 dark:bg-green-900/20 text-green-600 dark:text-green-400 rounded-lg hover:bg-green-100 dark:hover:bg-green-900/40 transition"
+                                title="تعديل"
+                            >
+                                <FaEdit />
+                            </button>
+                            <button
+                                onClick={() => handleDelete(client.id)}
+                                className="p-2 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-lg hover:bg-red-100 dark:hover:bg-red-900/40 transition"
+                                title="حذف"
+                            >
+                                <FaTrash />
+                            </button>
+                        </div>
+                        <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800 text-center flex justify-between px-2 text-xs text-gray-400 dark:text-gray-500">
+                            <span>📅 تسجيل: {client.createdAt ? new Date(client.createdAt).toISOString().split('T')[0] : 'غير متوفر'}</span>
+                            {client.latestSaleDate && (
+                                <span className="text-blue-500">🛒 اشتراك: {new Date(client.latestSaleDate).toISOString().split('T')[0]}</span>
+                            )}
+                        </div>
+                    </div>
                     </div>
                 ))}
-            </div>
-
-            {/* Edit Client Modal */}
-            {editingClient && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border dark:border-gray-700">
-                        <div className="sticky top-0 bg-white dark:bg-gray-900 p-6 border-b dark:border-gray-800 flex justify-between items-center z-10">
-                            <h2 className="text-2xl font-bold dark:text-white">تعديل بيانات العميل</h2>
-                            <button onClick={() => setEditingClient(null)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-3xl">&times;</button>
-                        </div>
-
-                        <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
-                            {Object.entries(DATA_MAPPING).map(([key, headers]) => {
-                                const FILE_KEYS = ['PhotoFront', 'PhotoSide', 'PhotoBack', 'TestsFile', 'XrayFile', 'LastDietFile']
-                                const isFile = FILE_KEYS.includes(key)
-                                return (
-                                    <div key={key} className="space-y-1">
-                                        <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                                            {headers[headers.length - 1]}
-                                        </label>
-                                        {isFile ? (
-                                            <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border dark:border-gray-700">
-                                                {/* Logic for File: Preview Existing or Upload New */}
-                                                {editingClient[key] && typeof editingClient[key] === 'string' ? (
-                                                    <div className="relative group w-fit">
-                                                        <a href={editingClient[key]} target="_blank" rel="noreferrer" className="block">
-                                                            <img
-                                                                src={editingClient[key]}
-                                                                alt={key}
-                                                                className="h-24 w-24 object-cover rounded shadow-sm"
-                                                                onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }}
-                                                            />
-                                                            <div className="hidden h-24 w-24 flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-xs text-center rounded p-1 text-gray-500">
-                                                                ملف (اضغط للعرض)
-                                                            </div>
-                                                        </a>
-                                                        <button
-                                                            onClick={() => setEditingClient(prev => ({ ...prev, [key]: '' }))}
-                                                            className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition shadow-md hover:bg-red-600"
-                                                            title="حذف الملف"
-                                                        >
-                                                            <FaTimes size={12} />
-                                                        </button>
-                                                    </div>
-                                                ) : (
-                                                    <div className="flex flex-col gap-2">
-                                                        <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600 transition">
-                                                            <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                                                <FaCloudUploadAlt className="w-8 h-8 mb-2 text-gray-500 dark:text-gray-400" />
-                                                                <p className="text-xs text-gray-500 dark:text-gray-400">اضغط للرفع</p>
-                                                            </div>
-                                                            <input type="file" className="hidden" onChange={(e) => handleFileChange(e, key)} />
-                                                        </label>
-                                                        {filesToUpload[key] && (
-                                                            <span className="text-xs text-green-600 truncate max-w-[200px]">
-                                                                جاهز للرفع: {filesToUpload[key].name}
-                                                            </span>
-                                                        )}
-                                                    </div>
-                                                )}
-                                            </div>
-                                        ) : (
-                                            <input
-                                                type="text"
-                                                value={editingClient[key] || ''}
-                                                onChange={(e) => setEditingClient(prev => ({ ...prev, [key]: e.target.value }))}
-                                                className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-primary outline-none"
-                                            />
-                                        )}
-                                    </div>
-                                )
-                            })}
-                        </div>
-
-                        <div className="sticky bottom-0 bg-white dark:bg-gray-900 p-6 border-t dark:border-gray-800 flex justify-end gap-3 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
-                            <button
-                                onClick={() => setEditingClient(null)}
-                                className="px-6 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg transition"
-                            >
-                                إلغاء
-                            </button>
-                            <button
-                                onClick={saveEditedClient}
-                                className="px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition shadow-lg shadow-primary/20"
-                            >
-                                {loading ? 'جاري الحفظ...' : 'حفظ التعديلات'}
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
-
-            {filteredClients.length === 0 && (
-                <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                    <p className="text-xl">لا يوجد عملاء مطابقين للبحث</p>
-                </div>
-            )}
-
-            {/* Modal: Client Details */}
-            {selectedClient && (
-                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-                    <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border dark:border-gray-700">
-                        <div className="sticky top-0 bg-white dark:bg-gray-900 p-6 border-b dark:border-gray-800 flex justify-between items-center z-10">
-                            <div>
-                                <h2 className="text-2xl font-bold dark:text-white">{selectedClient.FullName}</h2>
-                                <div className="flex gap-4 text-sm text-gray-500 mt-1">
-                                    <span>كود: {selectedClient.ClientCode}</span>
-                                    <span>•</span>
-                                    <span>{selectedClient.Timestamp || 'تاريخ التسجيل غير متوفر'}</span>
-                                </div>
-                            </div>
-                            <button onClick={() => setSelectedClient(null)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-3xl">&times;</button>
-                        </div>
-
-                        <div className="p-6 grid md:grid-cols-2 gap-8">
-                            {/* قسم البيانات الشخصية */}
-                            <section>
-                                <h3 className="text-lg font-bold text-primary mb-4 border-b pb-2">👤 بيانات شخصية</h3>
-                                <div className="space-y-3">
-                                    <DetailRow label="البريد الإلكتروني" value={selectedClient.Email} />
-                                    <DetailRow label="رقم الهاتف" value={selectedClient.PhoneNumber} />
-                                    <DetailRow label="النوع" value={selectedClient.Gender} />
-                                    <DetailRow label="تاريخ الميلاد" value={selectedClient.DOB} />
-                                    <DetailRow label="الدولة" value={selectedClient.Country} />
-                                    <DetailRow label="الوظيفة" value={selectedClient.Job} />
-                                    <DetailRow label="الديانة" value={selectedClient.Religion} />
-                                </div>
-                            </section>
-
-                            {/* قسم القياسات والصحة */}
-                            <section>
-                                <h3 className="text-lg font-bold text-primary mb-4 border-b pb-2">🏥 الصحة والقياسات</h3>
-                                <div className="space-y-3">
-                                    <DetailRow label="الوزن الحالي" value={selectedClient.Weight} />
-                                    <DetailRow label="الطول" value={selectedClient.Height} />
-                                    <DetailRow label="هل تعاني من مشاكل صحية؟" value={selectedClient.HealthIssues} />
-                                    <DetailRow label="هل تستخدم أدوية؟" value={selectedClient.Medications} />
-                                    <DetailRow label="هل لديك إصابات؟" value={selectedClient.Injuries} />
-                                    <DetailRow label="هل أنت مدخن؟" value={selectedClient.Smoker} />
-                                    <DetailRow label="عمل تحاليل مؤخراً؟" value={selectedClient.DidTests} />
-                                    <FileLink label="ملف التحاليل" url={selectedClient.TestsFile} />
-                                    <FileLink label="ملف الأشعة" url={selectedClient.XrayFile} />
-                                </div>
-                            </section>
-
-                            {/* قسم التغذية */}
-                            <section>
-                                <h3 className="text-lg font-bold text-primary mb-4 border-b pb-2">🍎 التغذية</h3>
-                                <div className="space-y-3">
-                                    <DetailRow label="الهدف من الاشتراك" value={selectedClient.Goal} />
-                                    <DetailRow label="تاريخ الدايت السابق" value={selectedClient.DietHistory} />
-                                    <DetailRow label="طبيعة اليوم والمجهود" value={selectedClient.DailyActivity} />
-                                    <DetailRow label="أسباب عدم الالتزام" value={selectedClient.ComplianceIssues} />
-                                    <DetailRow label="هل تشرب منبهات؟" value={selectedClient.Caffeine} />
-                                    <DetailRow label="حساسية من طعام" value={selectedClient.FoodAllergies} />
-                                    <DetailRow label="طعام لا تحبه" value={selectedClient.DislikedFood} />
-                                    <DetailRow label="هل تريد فيتامينات؟" value={selectedClient.WantVitamins} />
-                                    <DetailRow label="عدد الوجبات المفضل" value={selectedClient.MealsCount} />
-                                    <DetailRow label="نوع النظام (مرن/قاسي)" value={selectedClient.DietType} />
-                                    <DetailRow label="الميزانية" value={selectedClient.Budget} />
-                                    <DetailRow label="البروتين المفضل" value={selectedClient.FavProtein} />
-                                    <DetailRow label="الكربوهيدرات المفضلة" value={selectedClient.FavCarbs} />
-                                    <DetailRow label="الدهون المفضلة" value={selectedClient.FavFats} />
-                                    <FileLink label="ملف آخر دايت" url={selectedClient.LastDietFile} />
-                                </div>
-                            </section>
-
-                            {/* قسم التمرين */}
-                            <section>
-                                <h3 className="text-lg font-bold text-primary mb-4 border-b pb-2">💪 التمرين</h3>
-                                <div className="space-y-3">
-                                    <DetailRow label="الخبرة في التمرين" value={selectedClient.TrainingExp} />
-                                    <DetailRow label="مدة ممارسة الحديد" value={selectedClient.LiftingDuration} />
-                                    <DetailRow label="هل تمارس رياضة أخرى؟" value={selectedClient.OtherSports} />
-                                    <DetailRow label="مكان التمرين" value={selectedClient.GymLocation} />
-                                    <DetailRow label="الأدوات المتاحة" value={selectedClient.AvailableTools} />
-                                    <DetailRow label="عدد أيام التمرين" value={selectedClient.TrainingDays} />
-                                    <DetailRow label="الأيام المتاحة" value={selectedClient.AvailableDays} />
-                                    <DetailRow label="تمارين تسبب ألم" value={selectedClient.PainfulExercises} />
-                                    <DetailRow label="الكارديو المفضل" value={selectedClient.FavCardio} />
-                                    <DetailRow label="متوسط خطوات اليوم" value={selectedClient.StepsCount} />
-                                </div>
-                            </section>
-
-                            {/* معلومات إضافية */}
-                            <section className="md:col-span-2">
-                                <h3 className="text-lg font-bold text-primary mb-4 border-b pb-2">ℹ️ معلومات إضافية</h3>
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    <DetailRow label="تجربة سابقة أونلاين؟" value={selectedClient.OnlineExp} />
-                                    <DetailRow label="سبب الاشتراك معنا؟" value={selectedClient.JoinReason} />
-                                </div>
-                            </section>
-
-                            {/* ملاحظات */}
-                            <section className="md:col-span-2">
-                                <h3 className="text-lg font-bold text-primary mb-4 border-b pb-2">📝 ملاحظات إضافية</h3>
-                                <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-700">
-                                    <p className="dark:text-gray-300 whitespace-pre-wrap">{selectedClient.Notes || 'لا توجد ملاحظات إضافية'}</p>
-                                </div>
-                            </section>
-
-                            {/* الصور */}
-                            <section className="md:col-span-2">
-                                <h3 className="text-lg font-bold text-primary mb-4 border-b pb-2">📸 صور الجسم والملفات</h3>
-                                <div className="grid grid-cols-3 gap-4">
-                                    <ImageCard label="أمامية" url={selectedClient.files?.front || selectedClient.PhotoFront} />
-                                    <ImageCard label="جانبية" url={selectedClient.files?.side || selectedClient.PhotoSide} />
-                                    <ImageCard label="خلفية" url={selectedClient.files?.back || selectedClient.PhotoBack} />
-                                </div>
-                                <div className="mt-4 flex gap-4">
-                                    <FileLink label="ملف التحاليل" url={selectedClient.files?.tests || selectedClient.TestsFile} />
-                                    <FileLink label="ملف الأشعة" url={selectedClient.files?.xray || selectedClient.XrayFile} />
-                                </div>
-                            </section>
-                        </div>
-
-                        <div className="p-6 border-t dark:border-gray-800 flex justify-end">
-                            <button
-                                onClick={() => setSelectedClient(null)}
-                                className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white px-6 py-2 rounded-lg transition"
-                            >
-                                إغلاق
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
         </div>
+
+            {/* Edit Client Modal */ }
+    {
+        editingClient && (
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border dark:border-gray-700">
+                    <div className="sticky top-0 bg-white dark:bg-gray-900 p-6 border-b dark:border-gray-800 flex justify-between items-center z-10">
+                        <h2 className="text-2xl font-bold dark:text-white">تعديل بيانات العميل</h2>
+                        <button onClick={() => setEditingClient(null)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-3xl">&times;</button>
+                    </div>
+
+                    <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {Object.entries(DATA_MAPPING).map(([key, headers]) => {
+                            const FILE_KEYS = ['PhotoFront', 'PhotoSide', 'PhotoBack', 'TestsFile', 'XrayFile', 'LastDietFile']
+                            const isFile = FILE_KEYS.includes(key)
+                            return (
+                                <div key={key} className="space-y-1">
+                                    <label className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                                        {headers[headers.length - 1]}
+                                    </label>
+                                    {isFile ? (
+                                        <div className="bg-gray-50 dark:bg-gray-800 p-3 rounded-lg border dark:border-gray-700">
+                                            {/* Logic for File: Preview Existing or Upload New */}
+                                            {editingClient[key] && typeof editingClient[key] === 'string' ? (
+                                                <div className="relative group w-fit">
+                                                    <a href={editingClient[key]} target="_blank" rel="noreferrer" className="block">
+                                                        <img
+                                                            src={editingClient[key]}
+                                                            alt={key}
+                                                            className="h-24 w-24 object-cover rounded shadow-sm"
+                                                            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }}
+                                                        />
+                                                        <div className="hidden h-24 w-24 flex items-center justify-center bg-gray-200 dark:bg-gray-700 text-xs text-center rounded p-1 text-gray-500">
+                                                            ملف (اضغط للعرض)
+                                                        </div>
+                                                    </a>
+                                                    <button
+                                                        onClick={() => setEditingClient(prev => ({ ...prev, [key]: '' }))}
+                                                        className="absolute -top-2 -right-2 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition shadow-md hover:bg-red-600"
+                                                        title="حذف الملف"
+                                                    >
+                                                        <FaTimes size={12} />
+                                                    </button>
+                                                </div>
+                                            ) : (
+                                                <div className="flex flex-col gap-2">
+                                                    <label className="flex flex-col items-center justify-center w-full h-24 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 dark:hover:bg-gray-800 dark:bg-gray-700 hover:bg-gray-100 dark:border-gray-600 dark:hover:border-gray-500 dark:hover:bg-gray-600 transition">
+                                                        <div className="flex flex-col items-center justify-center pt-5 pb-6">
+                                                            <FaCloudUploadAlt className="w-8 h-8 mb-2 text-gray-500 dark:text-gray-400" />
+                                                            <p className="text-xs text-gray-500 dark:text-gray-400">اضغط للرفع</p>
+                                                        </div>
+                                                        <input type="file" className="hidden" onChange={(e) => handleFileChange(e, key)} />
+                                                    </label>
+                                                    {filesToUpload[key] && (
+                                                        <span className="text-xs text-green-600 truncate max-w-[200px]">
+                                                            جاهز للرفع: {filesToUpload[key].name}
+                                                        </span>
+                                                    )}
+                                                </div>
+                                            )}
+                                        </div>
+                                    ) : (
+                                        <input
+                                            type="text"
+                                            value={editingClient[key] || ''}
+                                            onChange={(e) => setEditingClient(prev => ({ ...prev, [key]: e.target.value }))}
+                                            className="w-full p-2 border border-gray-300 dark:border-gray-700 rounded-lg bg-white dark:bg-gray-800 dark:text-white focus:ring-2 focus:ring-primary outline-none"
+                                        />
+                                    )}
+                                </div>
+                            )
+                        })}
+                    </div>
+
+                    <div className="sticky bottom-0 bg-white dark:bg-gray-900 p-6 border-t dark:border-gray-800 flex justify-end gap-3 z-20 shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.1)]">
+                        <button
+                            onClick={() => setEditingClient(null)}
+                            className="px-6 py-2 bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white rounded-lg transition"
+                        >
+                            إلغاء
+                        </button>
+                        <button
+                            onClick={saveEditedClient}
+                            className="px-6 py-2 bg-primary hover:bg-primary-dark text-white rounded-lg transition shadow-lg shadow-primary/20"
+                        >
+                            {loading ? 'جاري الحفظ...' : 'حفظ التعديلات'}
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    {
+        filteredClients.length === 0 && (
+            <div className="text-center py-12 text-gray-500 dark:text-gray-400">
+                <p className="text-xl">لا يوجد عملاء مطابقين للبحث</p>
+            </div>
+        )
+    }
+
+    {/* Modal: Client Details */ }
+    {
+        selectedClient && (
+            <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                <div className="bg-white dark:bg-gray-900 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl border dark:border-gray-700">
+                    <div className="sticky top-0 bg-white dark:bg-gray-900 p-6 border-b dark:border-gray-800 flex justify-between items-center z-10">
+                        <div>
+                            <h2 className="text-2xl font-bold dark:text-white">{selectedClient.FullName}</h2>
+                            <div className="flex gap-4 text-sm text-gray-500 mt-1">
+                                <span>كود: {selectedClient.ClientCode}</span>
+                                <span>•</span>
+                                <span>{selectedClient.Timestamp || 'تاريخ التسجيل غير متوفر'}</span>
+                            </div>
+                        </div>
+                        <button onClick={() => setSelectedClient(null)} className="text-gray-500 hover:text-gray-700 dark:hover:text-gray-300 text-3xl">&times;</button>
+                    </div>
+
+                    <div className="p-6 grid md:grid-cols-2 gap-8">
+                        {/* قسم البيانات الشخصية */}
+                        <section>
+                            <h3 className="text-lg font-bold text-primary mb-4 border-b pb-2">👤 بيانات شخصية</h3>
+                            <div className="space-y-3">
+                                <DetailRow label="البريد الإلكتروني" value={selectedClient.Email} />
+                                <DetailRow label="رقم الهاتف" value={selectedClient.PhoneNumber} />
+                                <DetailRow label="النوع" value={selectedClient.Gender} />
+                                <DetailRow label="تاريخ الميلاد" value={selectedClient.DOB} />
+                                <DetailRow label="الدولة" value={selectedClient.Country} />
+                                <DetailRow label="الوظيفة" value={selectedClient.Job} />
+                                <DetailRow label="الديانة" value={selectedClient.Religion} />
+                            </div>
+                        </section>
+
+                        {/* قسم القياسات والصحة */}
+                        <section>
+                            <h3 className="text-lg font-bold text-primary mb-4 border-b pb-2">🏥 الصحة والقياسات</h3>
+                            <div className="space-y-3">
+                                <DetailRow label="الوزن الحالي" value={selectedClient.Weight} />
+                                <DetailRow label="الطول" value={selectedClient.Height} />
+                                <DetailRow label="هل تعاني من مشاكل صحية؟" value={selectedClient.HealthIssues} />
+                                <DetailRow label="هل تستخدم أدوية؟" value={selectedClient.Medications} />
+                                <DetailRow label="هل لديك إصابات؟" value={selectedClient.Injuries} />
+                                <DetailRow label="هل أنت مدخن؟" value={selectedClient.Smoker} />
+                                <DetailRow label="عمل تحاليل مؤخراً؟" value={selectedClient.DidTests} />
+                                <FileLink label="ملف التحاليل" url={selectedClient.TestsFile} />
+                                <FileLink label="ملف الأشعة" url={selectedClient.XrayFile} />
+                            </div>
+                        </section>
+
+                        {/* قسم التغذية */}
+                        <section>
+                            <h3 className="text-lg font-bold text-primary mb-4 border-b pb-2">🍎 التغذية</h3>
+                            <div className="space-y-3">
+                                <DetailRow label="الهدف من الاشتراك" value={selectedClient.Goal} />
+                                <DetailRow label="تاريخ الدايت السابق" value={selectedClient.DietHistory} />
+                                <DetailRow label="طبيعة اليوم والمجهود" value={selectedClient.DailyActivity} />
+                                <DetailRow label="أسباب عدم الالتزام" value={selectedClient.ComplianceIssues} />
+                                <DetailRow label="هل تشرب منبهات؟" value={selectedClient.Caffeine} />
+                                <DetailRow label="حساسية من طعام" value={selectedClient.FoodAllergies} />
+                                <DetailRow label="طعام لا تحبه" value={selectedClient.DislikedFood} />
+                                <DetailRow label="هل تريد فيتامينات؟" value={selectedClient.WantVitamins} />
+                                <DetailRow label="عدد الوجبات المفضل" value={selectedClient.MealsCount} />
+                                <DetailRow label="نوع النظام (مرن/قاسي)" value={selectedClient.DietType} />
+                                <DetailRow label="الميزانية" value={selectedClient.Budget} />
+                                <DetailRow label="البروتين المفضل" value={selectedClient.FavProtein} />
+                                <DetailRow label="الكربوهيدرات المفضلة" value={selectedClient.FavCarbs} />
+                                <DetailRow label="الدهون المفضلة" value={selectedClient.FavFats} />
+                                <FileLink label="ملف آخر دايت" url={selectedClient.LastDietFile} />
+                            </div>
+                        </section>
+
+                        {/* قسم التمرين */}
+                        <section>
+                            <h3 className="text-lg font-bold text-primary mb-4 border-b pb-2">💪 التمرين</h3>
+                            <div className="space-y-3">
+                                <DetailRow label="الخبرة في التمرين" value={selectedClient.TrainingExp} />
+                                <DetailRow label="مدة ممارسة الحديد" value={selectedClient.LiftingDuration} />
+                                <DetailRow label="هل تمارس رياضة أخرى؟" value={selectedClient.OtherSports} />
+                                <DetailRow label="مكان التمرين" value={selectedClient.GymLocation} />
+                                <DetailRow label="الأدوات المتاحة" value={selectedClient.AvailableTools} />
+                                <DetailRow label="عدد أيام التمرين" value={selectedClient.TrainingDays} />
+                                <DetailRow label="الأيام المتاحة" value={selectedClient.AvailableDays} />
+                                <DetailRow label="تمارين تسبب ألم" value={selectedClient.PainfulExercises} />
+                                <DetailRow label="الكارديو المفضل" value={selectedClient.FavCardio} />
+                                <DetailRow label="متوسط خطوات اليوم" value={selectedClient.StepsCount} />
+                            </div>
+                        </section>
+
+                        {/* معلومات إضافية */}
+                        <section className="md:col-span-2">
+                            <h3 className="text-lg font-bold text-primary mb-4 border-b pb-2">ℹ️ معلومات إضافية</h3>
+                            <div className="grid md:grid-cols-2 gap-4">
+                                <DetailRow label="تجربة سابقة أونلاين؟" value={selectedClient.OnlineExp} />
+                                <DetailRow label="سبب الاشتراك معنا؟" value={selectedClient.JoinReason} />
+                            </div>
+                        </section>
+
+                        {/* ملاحظات */}
+                        <section className="md:col-span-2">
+                            <h3 className="text-lg font-bold text-primary mb-4 border-b pb-2">📝 ملاحظات إضافية</h3>
+                            <div className="bg-gray-50 dark:bg-gray-800 p-4 rounded-lg border dark:border-gray-700">
+                                <p className="dark:text-gray-300 whitespace-pre-wrap">{selectedClient.Notes || 'لا توجد ملاحظات إضافية'}</p>
+                            </div>
+                        </section>
+
+                        {/* الصور */}
+                        <section className="md:col-span-2">
+                            <h3 className="text-lg font-bold text-primary mb-4 border-b pb-2">📸 صور الجسم والملفات</h3>
+                            <div className="grid grid-cols-3 gap-4">
+                                <ImageCard label="أمامية" url={selectedClient.files?.front || selectedClient.PhotoFront} />
+                                <ImageCard label="جانبية" url={selectedClient.files?.side || selectedClient.PhotoSide} />
+                                <ImageCard label="خلفية" url={selectedClient.files?.back || selectedClient.PhotoBack} />
+                            </div>
+                            <div className="mt-4 flex gap-4">
+                                <FileLink label="ملف التحاليل" url={selectedClient.files?.tests || selectedClient.TestsFile} />
+                                <FileLink label="ملف الأشعة" url={selectedClient.files?.xray || selectedClient.XrayFile} />
+                            </div>
+                        </section>
+                    </div>
+
+                    <div className="p-6 border-t dark:border-gray-800 flex justify-end">
+                        <button
+                            onClick={() => setSelectedClient(null)}
+                            className="bg-gray-200 hover:bg-gray-300 dark:bg-gray-700 dark:hover:bg-gray-600 text-gray-800 dark:text-white px-6 py-2 rounded-lg transition"
+                        >
+                            إغلاق
+                        </button>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+        </div >
     )
 }
 

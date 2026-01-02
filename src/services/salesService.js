@@ -43,6 +43,67 @@ export const createSale = async (saleData) => {
 
         await sale.save()
         console.log('✅ تم حفظ المبيعة:', sale.id)
+
+        // ============================================================
+        // 2. إنشاء اشتراك (Subscription) وربطه
+        // ============================================================
+        try {
+            const startDate = new Date(saleData.startDate);
+            const duration = parseInt(saleData.duration) || 0;
+            const bonus = parseInt(saleData.bonusDuration) || 0;
+            const totalMonths = duration + bonus;
+
+            // حساب تاريخ الانتهاء
+            const endDate = new Date(startDate);
+            endDate.setMonth(endDate.getMonth() + totalMonths);
+
+            const Subscription = Parse.Object.extend('Subscription');
+            const sub = new Subscription();
+
+            sub.set('clientCode', saleData.clientCode);
+            sub.set('clientName', saleData.clientName);
+            sub.set('clientEmail', saleData.email);
+            sub.set('clientPhone', saleData.phoneNumber);
+            sub.set('type', saleData.subscriptionType);
+            sub.set('package', saleData.package);
+            sub.set('price', parseFloat(saleData.amountPaid));
+            sub.set('currency', saleData.currency);
+            sub.set('status', 'active');
+            sub.set('startDate', startDate);
+            sub.set('endDate', endDate);
+
+            // Link to Sale and Client if possible
+            sub.set('saleId', sale.id);
+            if (saleData.clientId) {
+                sub.set('clientId', saleData.clientId);
+            }
+
+            await sub.save();
+            console.log('✅ تم إنشاء الاشتراك:', sub.id);
+
+            // ============================================================
+            // 3. تحديث حالة العميل (Client) إلى Active
+            // ============================================================
+            if (saleData.clientCode) {
+                const Client = Parse.Object.extend('Client');
+                const query = new Parse.Query(Client);
+                query.equalTo('ClientCode', saleData.clientCode);
+                const client = await query.first();
+
+                if (client) {
+                    client.set('status', 'active');
+                    // يمكننا أيضاً تخزين تاريخ انتهاء الاشتراك في العميل لسهولة العرض
+                    client.set('subscriptionEnd', endDate);
+                    await client.save();
+                    console.log('✅ تم تحديث حالة العميل إلى نشط');
+                }
+            }
+
+        } catch (subError) {
+            console.error('❌ خطأ في إنشاء الاشتراك أو تحديث العميل:', subError);
+            // لا نوقف العملية لأن المبيعة تم حفظها بالفعل، لكن ننبه المستخدم
+        }
+
         return sale
     } catch (error) {
         console.error('❌ خطأ في حفظ المبيعة:', error.message)
