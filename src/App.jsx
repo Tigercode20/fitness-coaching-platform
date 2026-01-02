@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { getCurrentUser, isAuthenticated } from './services/authService'
+import { getCurrentUser, isAuthenticated, onAuthChange } from './services/authService'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -75,6 +75,8 @@ function App() {
     const [initError, setInitError] = useState(null)
 
     useEffect(() => {
+        let unsubscribe = () => { };
+
         const initApp = async () => {
             try {
                 // Wait a brief moment to ensure Parse.initialize has fired in back4app.js
@@ -96,6 +98,17 @@ function App() {
         };
 
         initApp();
+
+        // Subscribe to auth changes
+        unsubscribe = onAuthChange((currentUser) => {
+            console.log("🔄 Auth State Changed:", currentUser?.get('email'));
+            setUser(currentUser);
+            setLoading(false);
+        });
+
+        return () => {
+            if (typeof unsubscribe === 'function') unsubscribe();
+        }
     }, [])
 
     if (loading) {

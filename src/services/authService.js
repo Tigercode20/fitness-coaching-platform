@@ -13,6 +13,26 @@ const isParseReady = () => {
 
 // ✅ Export functions directly (not as object)
 
+// Simple Observer Pattern for Auth State
+const observers = [];
+
+export const onAuthChange = (callback) => {
+    observers.push(callback);
+    // Trigger immediately with current state
+    const user = Parse.User.current();
+    callback(user);
+    // Return unsubscribe function
+    return () => {
+        const index = observers.indexOf(callback);
+        if (index > -1) observers.splice(index, 1);
+    };
+};
+
+const notifyAuthChange = () => {
+    const user = Parse.User.current();
+    observers.forEach(callback => callback(user));
+};
+
 export const signIn = async (email, password) => {
     try {
         if (!isParseReady()) {
@@ -21,6 +41,7 @@ export const signIn = async (email, password) => {
 
         const user = await Parse.User.logIn(email, password)
         console.log('✅ Logged in:', user.get('email'))
+        notifyAuthChange(); // Notify listeners
         return user
     } catch (error) {
         console.error('❌ Login Error:', error);
@@ -55,6 +76,7 @@ export const signUp = async (email, password, userData) => {
 
         await user.signUp()
         console.log('✅ Signed up:', user.get('email'))
+        notifyAuthChange(); // Notify listeners
         return user
     } catch (error) {
         console.error('❌ Signup Error:', error);
@@ -72,6 +94,7 @@ export const signOut = async () => {
 
         await Parse.User.logOut()
         console.log('✅ Logged out')
+        notifyAuthChange(); // Notify listeners
     } catch (error) {
         console.error('❌ Logout Error:', error.message)
         throw error
@@ -116,5 +139,6 @@ export default {
     signOut,
     logOut, // Add alias to default export
     getCurrentUser,
-    isAuthenticated
+    isAuthenticated,
+    onAuthChange
 }
