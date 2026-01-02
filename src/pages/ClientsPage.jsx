@@ -7,6 +7,7 @@ import { useState, useEffect } from 'react'
 import { FaUserPlus, FaSearch, FaFileExcel, FaDownload, FaUpload, FaEye, FaTrash, FaEdit, FaExternalLinkAlt, FaSync, FaTimes, FaCloudUploadAlt } from 'react-icons/fa'
 import * as XLSX from 'xlsx'
 import { getAllClients, deleteClient, updateClient, addNewClient } from '../services/clientService'
+import { getSalesBy } from '../services/salesService'
 import Parse from '../services/back4app'
 
 export default function ClientsPage() {
@@ -25,8 +26,31 @@ export default function ClientsPage() {
     const fetchClients = async () => {
         try {
             setLoading(true)
-            const data = await getAllClients()
-            setClients(data)
+            const [clientsData, salesData] = await Promise.all([
+                getAllClients(),
+                getSalesBy()
+            ])
+
+            // دمج تاريخ آخر اشتراك مع بيانات العميل
+            const enhancedClients = clientsData.map(client => {
+                // البحث عن مبيعات هذا العميل (باستخدام الكود أو الاسم أو الهاتف)
+                const clientSales = salesData.filter(sale => {
+                    const sCode = sale.get ? sale.get('clientCode') : sale.clientCode;
+                    const cCode = client.ClientCode;
+                    return String(sCode) === String(cCode);
+                });
+
+                // الحصول على أحدث تاريخ مبيعة
+                let latestSaleDate = null;
+                if (clientSales.length > 0) {
+                    clientSales.sort((a, b) => b.createdAt - a.createdAt);
+                    latestSaleDate = clientSales[0].createdAt;
+                }
+
+                return { ...client, latestSaleDate };
+            });
+
+            setClients(enhancedClients)
         } catch (error) {
             console.error("Error fetching clients:", error)
             alert("خطأ في تحميل العملاء")
@@ -431,10 +455,11 @@ export default function ClientsPage() {
                                     <FaTrash />
                                 </button>
                             </div>
-                            <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800 text-center">
-                                <span className="text-xs text-gray-400 dark:text-gray-500">
-                                    📅 تاريخ التسجيل: {client.createdAt ? new Date(client.createdAt).toLocaleDateString('ar-EG') : 'غير متوفر'}
-                                </span>
+                            <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800 text-center flex justify-between px-2 text-xs text-gray-400 dark:text-gray-500">
+                                <span>📅 تسجيل: {client.createdAt ? new Date(client.createdAt).toLocaleDateString('ar-EG') : 'غير متوفر'}</span>
+                                {client.latestSaleDate && (
+                                    <span className="text-blue-500">🛒 اشتراك: {new Date(client.latestSaleDate).toLocaleDateString('ar-EG')}</span>
+                                )}
                             </div>
                         </div>
                     </div>
