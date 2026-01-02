@@ -5,9 +5,9 @@
 
 import { useState, useEffect } from 'react'
 import { FaEdit, FaTrash, FaDownload, FaUpload, FaSearch } from 'react-icons/fa'
-import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore'
-import { db } from '../services/firebase'
 import * as XLSX from 'xlsx'
+import { getAllSubscriptions, deleteSubscription } from '../services/subscriptionService'
+import { getAllClients } from '../services/clientService'
 
 export default function SubscriptionsPage() {
     const [subscriptions, setSubscriptions] = useState([])
@@ -27,19 +27,11 @@ export default function SubscriptionsPage() {
         try {
             setLoading(true)
 
-            // تحميل الاشتراكات
-            const subSnapshot = await getDocs(collection(db, 'subscriptions'))
-            const subs = subSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }))
-
-            // تحميل العملاء
-            const clientSnapshot = await getDocs(collection(db, 'clients'))
-            const clts = clientSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }))
+            // تحميل البيانات من Back4App
+            const [subs, clts] = await Promise.all([
+                getAllSubscriptions(),
+                getAllClients()
+            ])
 
             setSubscriptions(subs)
             setClients(clts)
@@ -63,10 +55,10 @@ export default function SubscriptionsPage() {
         return matchSearch && matchStatus
     })
 
-    // حذف اشتراك
+    // حذف اشتراك (Back4App)
     const handleDelete = async (id) => {
         try {
-            await deleteDoc(doc(db, 'subscriptions', id))
+            await deleteSubscription(id)
             setSubscriptions(subscriptions.filter(s => s.id !== id))
             setDeleteConfirm(null)
             alert('تم الحذف بنجاح')

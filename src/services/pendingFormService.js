@@ -1,115 +1,149 @@
 // ============================================
 // src/services/pendingFormService.js
-// Pending Forms Service - For Review Workflow
+// Pending Forms Service - Back4App (Parse) Logic
 // ============================================
 
-import {
-    collection,
-    addDoc,
-    getDocs,
-    doc,
-    deleteDoc,
-    updateDoc,
-    query,
-    orderBy,
-    Timestamp
-} from 'firebase/firestore';
-import { db } from './firebase';
+import Parse from './back4app';
+import { addNewClient } from './clientService'; // We'll delegate approval to clientService
 
-const PENDING_FORMS_COLLECTION = 'pending_forms';
+const PENDING_FORM_CLASS = 'PendingForm';
 
-// 1️⃣ Save a pending form
-export const savePendingForm = async (formData, formType) => {
+// Save New Pending Form
+export const savePendingForm = async (formData, formType = 'client') => {
     try {
-        const docRef = await addDoc(collection(db, PENDING_FORMS_COLLECTION), {
-            type: formType, // 'client', 'subscription', 'request'
-            data: formData,
-            status: 'pending', // pending, approved, rejected
-            createdAt: Timestamp.now(),
-            notes: ''
-        });
-        console.log('✅ Pending form saved:', docRef.id);
-        return docRef.id;
+        const PendingForm = Parse.Object.extend(PENDING_FORM_CLASS);
+        const form = new PendingForm();
+
+        // Basic meta-data
+        form.set('type', formType);
+        form.set('status', 'pending');
+        form.set('submittedAt', new Date());
+
+        // Store the raw form data as a JSON object in a column named 'data'
+        // OR map fields individually. Storing as JSON 'data' is flexible for variable schemas.
+        // However, looking at previous implementation, we might want some top-level fields for querying.
+
+        // Let's store compact data + key fields for searching
+        form.set('data', formData);
+
+        // Hoist key fields for Dashboard/List queries
+        if (formData.fullName) form.set('fullName', formData.fullName);
+        if (formData.email) form.set('email', formData.email);
+        if (formData.phone) form.set('phone', formData.phone);
+
+        const result = await form.save();
+        return result.id;
     } catch (error) {
-        console.error('❌ Error saving pending form:', error);
+        console.error("Error saving pending form:", error);
         throw error;
     }
 };
 
-// 2️⃣ Get all pending forms
+// Get All Pending Forms
 export const getPendingForms = async () => {
     try {
-        const q = query(collection(db, PENDING_FORMS_COLLECTION), orderBy('createdAt', 'desc'));
-        const querySnapshot = await getDocs(q);
-        return querySnapshot.docs.map(doc => ({
+        const query = new Parse.Query(PENDING_FORM_CLASS);
+        query.equalTo('status', 'pending');
+        query.descending('submittedAt');
+
+        const results = await query.find();
+        return results.map(doc => ({
             id: doc.id,
-            ...doc.data()
+            ...doc.attributes,
+            // Ensure 'data' attribute is spread or accessible
+            ...doc.get('data'),
+            submittedAt: doc.get('submittedAt')
         }));
     } catch (error) {
-        console.error('❌ Error fetching pending forms:', error);
-        throw error;
+        throw new Error(`Error fetching pending forms: ${error.message}`);
     }
 };
 
-// 3️⃣ Approve a pending form
-export const approvePendingForm = async (formId, finalData = null) => {
+// Get Pending Form by ID
+export const getPendingFormById = async (id) => {
     try {
-        const formRef = doc(db, PENDING_FORMS_COLLECTION, formId);
-        await updateDoc(formRef, {
-            status: 'approved',
-            approvedAt: Timestamp.now(),
-            ...(finalData && { data: finalData })
-        });
-        console.log('✅ Form approved:', formId);
-        return true;
+        const query = new Parse.Query(PENDING_FORM_CLASS);
+        const doc = await query.get(id);
+        return {
+            id: doc.id,
+            ...doc.attributes,
+            ...doc.get('data')
+        };
     } catch (error) {
-        console.error('❌ Error approving form:', error);
-        throw error;
+        throw new Error(`Error fetching form: ${error.message}`);
     }
 };
 
-// 4️⃣ Reject a pending form
-export const rejectPendingForm = async (formId, reason = '') => {
+// Approve Form
+export const approvePendingForm = async (id, finalData) => {
     try {
-        const formRef = doc(db, PENDING_FORMS_COLLECTION, formId);
-        await updateDoc(formRef, {
-            status: 'rejected',
-            rejectedAt: Timestamp.now(),
-            rejectionReason: reason
-        });
-        console.log('✅ Form rejected:', formId);
-        return true;
+        // 1. Add to main Clients collection
+        const newClientId = await addNewClient(finalData);
+
+        // 2. Update status to approved
+        const query = new Parse.Query(PENDING_FORM_CLASS);
+        const form = await query.get(id);
+
+        form.set('status', 'approved');
+        form.set('approvedAt', new Date());
+        form.set('relatedClientId', newClientId);
+
+        await form.save();
+
+        return newClientId;
     } catch (error) {
-        console.error('❌ Error rejecting form:', error);
-        throw error;
+        throw new Error(`Error approving form: ${error.message}`);
     }
 };
 
-// 5️⃣ Delete a pending form
-export const deletePendingForm = async (formId) => {
+// Reject Form
+export const rejectPendingForm = async (id, reason) => {
     try {
-        await deleteDoc(doc(db, PENDING_FORMS_COLLECTION, formId));
-        console.log('✅ Pending form deleted:', formId);
-        return true;
+        const query = new Parse.Query(PENDING_FORM_CLASS);
+        const form = await query.get(id);
+
+        form.set('status', 'rejected');
+        form.set('rejectionReason', reason);
+        form.set('rejectedAt', new Date());
+
+        await form.save();
     } catch (error) {
-        console.error('❌ Error deleting pending form:', error);
-        throw error;
+        throw new Error(`Error rejecting form: ${error.message}`);
     }
 };
 
-// 6️⃣ Update a pending form (for edits before approval)
-export const updatePendingForm = async (formId, updatedData) => {
+// Delete Form
+export const deletePendingForm = async (id) => {
     try {
-        const formRef = doc(db, PENDING_FORMS_COLLECTION, formId);
-        await updateDoc(formRef, {
-            data: updatedData,
-            updatedAt: Timestamp.now()
-        });
-        console.log('✅ Pending form updated:', formId);
-        return true;
+        const query = new Parse.Query(PENDING_FORM_CLASS);
+        const form = await query.get(id);
+        await form.destroy();
     } catch (error) {
-        console.error('❌ Error updating pending form:', error);
-        throw error;
+        throw new Error(`Error deleting form: ${error.message}`);
+    }
+};
+
+// Update Pending Form Data
+export const updatePendingForm = async (id, updatedData) => {
+    try {
+        const query = new Parse.Query(PENDING_FORM_CLASS);
+        const form = await query.get(id);
+
+        // Update the 'data' object
+        // Note: For deep merge patterns, we might need to fetch `data` first.
+        // Assuming updatedData is the full new state or we merge manually.
+        const currentData = form.get('data') || {};
+        const newData = { ...currentData, ...updatedData };
+
+        form.set('data', newData);
+
+        // Update hoisted fields if they changed
+        if (updatedData.fullName) form.set('fullName', updatedData.fullName);
+        if (updatedData.email) form.set('email', updatedData.email);
+
+        await form.save();
+    } catch (error) {
+        throw new Error(`Error updating form: ${error.message}`);
     }
 };
 

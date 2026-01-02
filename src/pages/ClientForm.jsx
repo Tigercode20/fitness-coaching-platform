@@ -4,12 +4,9 @@
 // ============================================
 
 import { useState } from 'react'
-import { collection, addDoc } from 'firebase/firestore'
-import { db } from '../services/firebase'
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage'
 import ThemeToggle from '../components/Common/ThemeToggle'
-import { storage } from '../services/firebase'
 import { savePendingForm } from '../services/pendingFormService'
+import Parse from '../services/back4app'
 
 export default function ClientForm() {
     const [loading, setLoading] = useState(false)
@@ -83,7 +80,7 @@ export default function ClientForm() {
         additionalNotes: ''
     })
 
-    // ✅ حل مشكلة الصور - تحميل الصور بشكل آمن
+    // ✅ حل مشكلة الصور - تحميل الصور بشكل آمن (Back4App)
     const handleImageUpload = async (e, imageType) => {
         const file = e.target.files[0]
         if (!file) return
@@ -103,19 +100,16 @@ export default function ClientForm() {
                 return
             }
 
-            // رفع الصورة إلى Firebase Storage
-            const timestamp = Date.now()
-            const storagePath = `client-images/${timestamp}-${imageType}-${file.name}`
-            const storageRef = ref(storage, storagePath)
+            setLoading(true) // Show loading indicator during upload
 
-            console.log(`📤 رفع الملف إلى: ${storagePath}`)
+            // رفع الصورة إلى Back4App
+            const name = `${Date.now()}_${imageType}_${file.name.replace(/\s/g, '_')}`;
+            const parseFile = new Parse.File(name, file);
 
-            const uploadResult = await uploadBytes(storageRef, file)
-            console.log(`✅ تم رفع الملف:`, uploadResult)
+            const savedFile = await parseFile.save();
+            const downloadURL = savedFile.url();
 
-            // الحصول على رابط التحميل
-            const downloadURL = await getDownloadURL(storageRef)
-            console.log(`🔗 رابط التحميل: ${downloadURL}`)
+            console.log(`✅ تم رفع الملف:`, downloadURL)
 
             // تحديث الـ state
             const fieldName = `${imageType}ImageUrl`
@@ -128,10 +122,12 @@ export default function ClientForm() {
         } catch (error) {
             console.error(`❌ خطأ في رفع ${imageType}:`, error)
             alert(`❌ خطأ في رفع الصورة: ${error.message}`)
+        } finally {
+            setLoading(false)
         }
     }
 
-    // معالجة الملفات الأخرى (PDF, Excel)
+    // معالجة الملفات الأخرى (PDF, Excel) (Back4App)
     const handleFileUpload = async (e, fileType) => {
         const file = e.target.files[0]
         if (!file) return
@@ -144,12 +140,13 @@ export default function ClientForm() {
                 return
             }
 
-            const timestamp = Date.now()
-            const storagePath = `client-files/${timestamp}-${fileType}-${file.name}`
-            const storageRef = ref(storage, storagePath)
+            setLoading(true)
 
-            const uploadResult = await uploadBytes(storageRef, file)
-            const downloadURL = await getDownloadURL(storageRef)
+            const name = `${Date.now()}_${fileType}_${file.name.replace(/\s/g, '_')}`;
+            const parseFile = new Parse.File(name, file);
+
+            const savedFile = await parseFile.save();
+            const downloadURL = savedFile.url();
 
             const fieldName = `${fileType}FileUrl`
             setFormData(prev => ({
@@ -161,6 +158,8 @@ export default function ClientForm() {
         } catch (error) {
             console.error(`❌ خطأ في رفع ملف ${fileType}:`, error)
             alert(`❌ خطأ: ${error.message}`)
+        } finally {
+            setLoading(false)
         }
     }
 

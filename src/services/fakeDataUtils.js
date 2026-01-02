@@ -1,9 +1,13 @@
-import { addNewClient, getAllClients, deleteClient } from './clientService';
-import { addSubscription, getAllSubscriptions } from './subscriptionService';
-import { deleteDoc, doc, collection, getDocs, writeBatch } from 'firebase/firestore';
-import { db } from './firebase';
+// ============================================
+// src/services/fakeDataUtils.js
+// Fake Data Generator - Back4App (Parse) Version
+// ============================================
 
-// ✅ Fake Data Generator - Firestore Version
+import { addNewClient } from './clientService';
+import { addSubscription } from './subscriptionService';
+import Parse from './back4app';
+
+// ✅ Fake Data Generator
 
 export const generateFakeClient = () => {
     const firstNames = ['محمد', 'أحمد', 'علي', 'سارة', 'فاطمة', 'ليلى', 'خالد', 'نور', 'زيد', 'هناء'];
@@ -16,7 +20,7 @@ export const generateFakeClient = () => {
     const phoneNum = Math.floor(Math.random() * 90000000) + 10000000;
 
     return {
-        FullName: `${firstName} ${lastName}`, // Capitalized as per previous files
+        FullName: `${firstName} ${lastName}`,
         Email: `user${num}@gmail.com`,
         PhoneNumber: `+2010${phoneNum}`,
         Age: Math.floor(Math.random() * (60 - 18)) + 18,
@@ -60,10 +64,10 @@ export const addFakeData = async (count = 5) => {
                 const subscriptionData = {
                     ClientID: client.id,
                     ClientName: client.FullName,
-                    Type: plan, // Using 'Type' based on SubscriptionsPage
+                    Type: plan,
                     Price: prices[plan],
-                    StartDate: startDate.toISOString().split('T')[0],
-                    EndDate: endDate.toISOString().split('T')[0],
+                    StartDate: startDate, // Date object
+                    EndDate: endDate, // Date object
                     Status: 'Active',
                     PaidAmount: prices[plan],
                     RemainingAmount: 0
@@ -85,40 +89,36 @@ export const addFakeData = async (count = 5) => {
 
 export const clearAllData = async () => {
     try {
-        const batchButton = confirm('This will specificially delete ALL clients and subscriptions from Cloud Firestore. Are you sure?');
+        const batchButton = confirm('This will specificially delete ALL clients and subscriptions from Back4App. Are you sure?');
         if (!batchButton) return false;
 
         console.log('Clearing all data...');
-        const batch = writeBatch(db);
-        let opCount = 0;
-        const MAX_BATCH_SIZE = 450; // Firestore limit is 500
 
-        // Get all clients
-        const clientsSnapshot = await getDocs(collection(db, 'clients'));
-        clientsSnapshot.forEach((doc) => {
-            batch.delete(doc.ref);
-            opCount++;
-        });
+        // 1. Delete Clients
+        const clientQuery = new Parse.Query('Client');
+        clientQuery.limit(1000);
+        const clients = await clientQuery.find();
+        if (clients.length > 0) {
+            await Parse.Object.destroyAll(clients);
+            console.log(`Deleted ${clients.length} clients.`);
+        }
 
-        // Get all subscriptions
-        const subsSnapshot = await getDocs(collection(db, 'subscriptions'));
-        subsSnapshot.forEach((doc) => {
-            batch.delete(doc.ref);
-            opCount++;
-        });
+        // 2. Delete Subscriptions
+        const subQuery = new Parse.Query('Subscription');
+        subQuery.limit(1000);
+        const subscriptions = await subQuery.find();
+        if (subscriptions.length > 0) {
+            await Parse.Object.destroyAll(subscriptions);
+            console.log(`Deleted ${subscriptions.length} subscriptions.`);
+        }
 
-        // If we have operations, commit them. 
-        // Note: For very large datasets, we should chunk this. 
-        // Assuming reasonable test data size for now (<500 docs total).
-        if (opCount > 0) {
-            if (opCount > 500) {
-                alert('Too many documents to delete at once. Please implement batch chunking.');
-                return false;
-            }
-            await batch.commit();
-            console.log(`✅ Deleted ${opCount} documents.`);
-        } else {
-            console.log('No data to delete.');
+        // 3. Delete Pending Forms
+        const pendingQuery = new Parse.Query('PendingForm');
+        pendingQuery.limit(1000);
+        const pendingForms = await pendingQuery.find();
+        if (pendingForms.length > 0) {
+            await Parse.Object.destroyAll(pendingForms);
+            console.log(`Deleted ${pendingForms.length} pending forms.`);
         }
 
         return true;

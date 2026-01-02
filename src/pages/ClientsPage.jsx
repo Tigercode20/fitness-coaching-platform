@@ -7,7 +7,7 @@ import { useState, useEffect } from 'react'
 import { FaUserPlus, FaSearch, FaFileExcel, FaDownload, FaUpload, FaEye, FaTrash, FaEdit, FaExternalLinkAlt, FaSync, FaTimes, FaCloudUploadAlt } from 'react-icons/fa'
 import * as XLSX from 'xlsx'
 import { getAllClients, deleteClient, updateClient, addNewClient } from '../services/clientService'
-import { getStorage, ref, uploadBytes, getDownloadURL } from 'firebase/storage'
+import Parse from '../services/back4app'
 
 export default function ClientsPage() {
     const [clients, setClients] = useState([])
@@ -17,7 +17,7 @@ export default function ClientsPage() {
     const [editingClient, setEditingClient] = useState(null)
     const [filesToUpload, setFilesToUpload] = useState({}) // Store files locally before upload
 
-    // Load Clients from Firestore
+    // Load Clients from Back4App
     useEffect(() => {
         fetchClients()
     }, [])
@@ -63,15 +63,14 @@ export default function ClientsPage() {
 
             let updatedClient = { ...editingClient }
 
-            // Upload files if any
+            // Upload files if any (Back4App)
             if (Object.keys(filesToUpload).length > 0) {
-                const storage = getStorage()
                 for (const [key, file] of Object.entries(filesToUpload)) {
                     try {
-                        const fileRef = ref(storage, `clients/${updatedClient.id}/${key}_${Date.now()}_${file.name}`)
-                        await uploadBytes(fileRef, file)
-                        const url = await getDownloadURL(fileRef)
-                        updatedClient[key] = url
+                        const name = `${Date.now()}_${key}_${file.name.replace(/\s/g, '_')}`;
+                        const parseFile = new Parse.File(name, file);
+                        const savedFile = await parseFile.save();
+                        updatedClient[key] = savedFile.url();
                     } catch (uploadError) {
                         console.error(`Error uploading ${key}:`, uploadError)
                         alert(`فشل رفع الملف: ${key}`)

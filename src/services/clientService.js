@@ -1,36 +1,27 @@
 // ============================================
 // src/services/clientService.js
-// Client Service - Database Operations
+// Client Service - Back4App (Parse) Operations
 // ============================================
 
-import {
-    collection,
-    addDoc,
-    getDocs,
-    getDoc,
-    doc,
-    updateDoc,
-    deleteDoc,
-    query,
-    where,
-    orderBy,
-    limit,
-    startAfter,
-    Timestamp
-} from 'firebase/firestore';
-import { db } from './firebase';
+import Parse from './back4app';
 
-const CLIENTS_COLLECTION = 'clients';
+const CLIENT_CLASS = 'Client';
 
-// Add New Client (from NewClientForm)
+// Add New Client
 export const addNewClient = async (clientData) => {
     try {
-        const docRef = await addDoc(collection(db, CLIENTS_COLLECTION), {
-            ...clientData,
-            createdAt: Timestamp.now(),
-            updatedAt: Timestamp.now()
+        const Client = Parse.Object.extend(CLIENT_CLASS);
+        const client = new Client();
+
+        // Set fields
+        Object.keys(clientData).forEach(key => {
+            if (clientData[key] !== undefined) {
+                client.set(key, clientData[key]);
+            }
         });
-        return docRef.id;
+
+        const result = await client.save();
+        return result.id;
     } catch (error) {
         throw new Error(`Error adding client: ${error.message}`);
     }
@@ -39,12 +30,16 @@ export const addNewClient = async (clientData) => {
 // Get All Clients
 export const getAllClients = async () => {
     try {
-        const querySnapshot = await getDocs(
-            query(collection(db, CLIENTS_COLLECTION), orderBy('createdAt', 'desc'))
-        );
-        return querySnapshot.docs.map(doc => ({
+        const query = new Parse.Query(CLIENT_CLASS);
+        query.descending('createdAt');
+        query.limit(1000); // Adjust limit as needed
+        const results = await query.find();
+
+        return results.map(doc => ({
             id: doc.id,
-            ...doc.data()
+            ...doc.attributes,
+            createdAt: doc.createdAt,
+            updatedAt: doc.updatedAt
         }));
     } catch (error) {
         throw new Error(`Error fetching clients: ${error.message}`);
@@ -54,14 +49,12 @@ export const getAllClients = async () => {
 // Get Client by ID
 export const getClientById = async (clientId) => {
     try {
-        const docSnap = await getDoc(doc(db, CLIENTS_COLLECTION, clientId));
-        if (docSnap.exists()) {
-            return {
-                id: docSnap.id,
-                ...docSnap.data()
-            };
-        }
-        return null;
+        const query = new Parse.Query(CLIENT_CLASS);
+        const doc = await query.get(clientId);
+        return {
+            id: doc.id,
+            ...doc.attributes
+        };
     } catch (error) {
         throw new Error(`Error fetching client: ${error.message}`);
     }
@@ -70,15 +63,14 @@ export const getClientById = async (clientId) => {
 // Get Client by Email
 export const getClientByEmail = async (email) => {
     try {
-        const q = query(
-            collection(db, CLIENTS_COLLECTION),
-            where('Email', '==', email)
-        );
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
+        const query = new Parse.Query(CLIENT_CLASS);
+        query.equalTo('Email', email);
+        const doc = await query.first();
+
+        if (doc) {
             return {
-                id: querySnapshot.docs[0].id,
-                ...querySnapshot.docs[0].data()
+                id: doc.id,
+                ...doc.attributes
             };
         }
         return null;
@@ -90,15 +82,14 @@ export const getClientByEmail = async (email) => {
 // Get Client by ClientCode
 export const getClientByCode = async (clientCode) => {
     try {
-        const q = query(
-            collection(db, CLIENTS_COLLECTION),
-            where('ClientCode', '==', clientCode)
-        );
-        const querySnapshot = await getDocs(q);
-        if (!querySnapshot.empty) {
+        const query = new Parse.Query(CLIENT_CLASS);
+        query.equalTo('ClientCode', clientCode);
+        const doc = await query.first();
+
+        if (doc) {
             return {
-                id: querySnapshot.docs[0].id,
-                ...querySnapshot.docs[0].data()
+                id: doc.id,
+                ...doc.attributes
             };
         }
         return null;
@@ -110,10 +101,17 @@ export const getClientByCode = async (clientCode) => {
 // Update Client
 export const updateClient = async (clientId, updates) => {
     try {
-        await updateDoc(doc(db, CLIENTS_COLLECTION, clientId), {
-            ...updates,
-            updatedAt: Timestamp.now()
+        const query = new Parse.Query(CLIENT_CLASS);
+        const client = await query.get(clientId);
+
+        Object.keys(updates).forEach(key => {
+            if (updates[key] !== undefined) {
+                // Handle special logic if needed for specific fields
+                client.set(key, updates[key]);
+            }
         });
+
+        await client.save();
     } catch (error) {
         throw new Error(`Error updating client: ${error.message}`);
     }
@@ -122,7 +120,9 @@ export const updateClient = async (clientId, updates) => {
 // Delete Client
 export const deleteClient = async (clientId) => {
     try {
-        await deleteDoc(doc(db, CLIENTS_COLLECTION, clientId));
+        const query = new Parse.Query(CLIENT_CLASS);
+        const client = await query.get(clientId);
+        await client.destroy();
     } catch (error) {
         throw new Error(`Error deleting client: ${error.message}`);
     }
@@ -131,12 +131,24 @@ export const deleteClient = async (clientId) => {
 // Search Clients by Name
 export const searchClientsByName = async (searchTerm) => {
     try {
-        const allClients = await getAllClients();
-        return allClients.filter(client =>
-            client.FullName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            client.Email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            client.ClientCode?.includes(searchTerm)
-        );
+        const lowerTerm = searchTerm.toLowerCase();
+
+        const q1 = new Parse.Query(CLIENT_CLASS);
+        q1.matches('FullName', new RegExp(searchTerm, 'i')); // Case-insensitive regex
+
+        const q2 = new Parse.Query(CLIENT_CLASS);
+        q2.matches('Email', new RegExp(searchTerm, 'i'));
+
+        const q3 = new Parse.Query(CLIENT_CLASS);
+        q3.startsWith('ClientCode', searchTerm);
+
+        const mainQuery = Parse.Query.or(q1, q2, q3);
+        const results = await mainQuery.find();
+
+        return results.map(doc => ({
+            id: doc.id,
+            ...doc.attributes
+        }));
     } catch (error) {
         throw new Error(`Error searching clients: ${error.message}`);
     }
