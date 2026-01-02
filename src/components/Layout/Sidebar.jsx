@@ -115,6 +115,13 @@ export default function Sidebar({ isOpen, onClose }) {
             path: '/settings',
             color: 'text-gray-500'
         },
+        {
+            icon: <FaClipboardList />,
+            label: '📋 الفورمات المعلقة',
+            path: '/pending-forms',
+            color: 'text-amber-500',
+            badge: '🔔'
+        },
     ]
 
     return (

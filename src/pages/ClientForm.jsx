@@ -6,6 +6,7 @@
 import { useState } from 'react'
 import { FaArrowRight, FaCheck } from 'react-icons/fa'
 import useDarkMode from '../hooks/useDarkMode'
+import { savePendingForm } from '../services/pendingFormService'
 
 export default function ClientForm() {
     const { isDark } = useDarkMode()
@@ -97,46 +98,44 @@ export default function ClientForm() {
     const handleSave = async () => {
         setLoading(true)
         try {
-            // هنا ترسل البيانات والملفات إلى Firebase
-            const formDataToSend = new FormData()
-            Object.keys(formData).forEach(key => {
-                if (formData[key] instanceof File) {
-                    formDataToSend.append(key, formData[key])
-                } else {
-                    formDataToSend.append(key, formData[key])
+            // Prepare data for pending form (excluding File objects for now)
+            const dataToSave = { ...formData }
+            // Convert File objects to null or handle file upload separately
+            Object.keys(dataToSave).forEach(key => {
+                if (dataToSave[key] instanceof File) {
+                    dataToSave[key] = `[ملف: ${dataToSave[key].name}]` // Placeholder text
                 }
             })
 
-            // Save to Firebase/API
-            console.log('Saving form data...', formData)
+            // Save to pending_forms collection for admin review
+            await savePendingForm(dataToSave, 'client')
 
-            // بعد الحفظ الناجح
-            setTimeout(() => {
-                alert('✅ شكراً! تم استقبال البيانات')
-                // إعادة تعيين الفورم
-                setFormData({
-                    fullName: '',
-                    email: '',
-                    phone: '',
-                    age: '',
-                    gender: '',
-                    mainGoal: '',
-                    goalDetails: '',
-                    reason: '',
-                    frontPhoto: null,
-                    sidePhoto: null,
-                    backPhoto: null,
-                    healthConditions: '',
-                    injuries: '',
-                    medications: '',
-                    experienceLevel: '',
-                    trainingFrequency: '',
-                    notes: ''
-                })
-                setFileNames({ frontPhoto: '', sidePhoto: '', backPhoto: '' })
-                setCurrentTab(0)
-            }, 500)
+            alert('✅ شكراً! تم استقبال البيانات وهي تحت المراجعة الآن.')
+
+            // إعادة تعيين الفورم
+            setFormData({
+                fullName: '',
+                email: '',
+                phone: '',
+                age: '',
+                gender: '',
+                mainGoal: '',
+                goalDetails: '',
+                reason: '',
+                frontPhoto: null,
+                sidePhoto: null,
+                backPhoto: null,
+                healthConditions: '',
+                injuries: '',
+                medications: '',
+                experienceLevel: '',
+                trainingFrequency: '',
+                notes: ''
+            })
+            setFileNames({ frontPhoto: '', sidePhoto: '', backPhoto: '' })
+            setCurrentTab(0)
         } catch (error) {
+            console.error('Error saving form:', error)
             alert('❌ حدث خطأ: ' + error.message)
         } finally {
             setLoading(false)

@@ -1,5 +1,5 @@
 import { addNewClient, getAllClients, deleteClient } from './clientService';
-import { addSubscription, getAllSubscriptions, deleteSubscription } from './subscriptionService'; // You might need to add deleteSubscription to subscriptionService if it doesn't exist, or use deleteDoc directly here if I import db
+import { addSubscription, getAllSubscriptions } from './subscriptionService';
 import { deleteDoc, doc, collection, getDocs, writeBatch } from 'firebase/firestore';
 import { db } from './firebase';
 
