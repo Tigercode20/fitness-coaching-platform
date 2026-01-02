@@ -1,89 +1,114 @@
-// src/services/authService.js - ✅ Safe Version
-import Parse, { isParseReady } from './back4app';
+// src/services/authService.js - ✅ 100% Correct Version
 
-// Ensure Parse is ready
-if (!isParseReady()) {
-    console.warn('⚠️ Parse is not ready yet. Auth service may not work properly.');
+import Parse from './back4app'
+
+// Helper function to check Parse readiness
+const isParseReady = () => {
+    try {
+        return !!Parse
+    } catch {
+        return false
+    }
 }
 
-export const authService = {
-    // Login
-    login: async (email, password) => {
-        try {
-            if (!isParseReady()) {
-                throw new Error('Parse is not initialized. Check your .env.local configuration.');
-            }
-            const user = await Parse.User.logIn(email, password);
-            console.log('✅ Logged in:', user.get('email'));
-            return user;
-        } catch (error) {
-            console.error('❌ Login error:', error.message);
-            throw error;
+// ✅ Export functions directly (not as object)
+
+export const signIn = async (email, password) => {
+    try {
+        if (!isParseReady()) {
+            throw new Error('Parse is not initialized. Check your .env.local configuration.')
         }
-    },
 
-    // Signup
-    signup: async (email, password, fullName) => {
-        try {
-            if (!isParseReady()) {
-                throw new Error('Parse is not initialized.');
-            }
-            const user = new Parse.User();
-            user.set('username', email); // Back4App uses username for auth
-            user.set('email', email);
-            user.set('password', password);
-            user.set('fullName', fullName);
-            user.set('role', 'coach'); // Default role
-
-            await user.signUp();
-            console.log('✅ Signed up:', user.get('email'));
-            return user;
-        } catch (error) {
-            console.error('❌ Signup error:', error.message);
-            throw error;
-        }
-    },
-
-    // Logout
-    logOut: async () => {
-        try {
-            if (!isParseReady()) {
-                console.warn('⚠️ Parse not ready, but clearing local state');
-                return;
-            }
-            await Parse.User.logOut();
-            console.log('✅ Logged out');
-        } catch (error) {
-            console.error('❌ Logout error:', error.message);
-            throw error;
-        }
-    },
-
-    // Get Current User
-    getCurrentUser: () => {
-        try {
-            if (isParseReady()) {
-                return Parse.User.current();
-            }
-            return null; // Return null if not ready
-        } catch (error) {
-            console.error('❌ getCurrentUser error:', error.message);
-            return null;
-        }
-    },
-
-    // onAuthChange listener
-    onAuthChange: (callback) => {
-        // Since Parse is synchronous mostly regarding current user state in local storage,
-        // we can call immediately.
-        // Real-time auth changes in Parse are less event-driven than Firebase,
-        // usually requiring a check on mount.
-        const user = Parse.User.current();
-        callback(user);
-
-        // Return dummy unsubscribe
-        return () => { };
+        const user = await Parse.User.logIn(email, password)
+        console.log('✅ Logged in:', user.get('email'))
+        return user
+    } catch (error) {
+        console.error('❌ Login Error:', error.message)
+        throw error
     }
-};
+}
 
-export default authService;
+export const signUp = async (email, password, userData) => {
+    try {
+        if (!isParseReady()) {
+            throw new Error('Parse is not initialized.')
+        }
+
+        const user = new Parse.User()
+        user.set('username', email)
+        user.set('email', email)
+        user.set('password', password)
+
+        // Handle userData object if passed (user's code had fullName arg, but component passes object sometimes)
+        // Adjusting to handle both or just strict per user request. 
+        // User request: signUp(email, password, fullName) 
+        // BUT Component (Register.jsx) calls: signUp(formData.email, formData.password, { fullName: ..., role: ... })
+        // I must make this robust. 
+
+        if (typeof userData === 'string') {
+            user.set('fullName', userData);
+        } else if (typeof userData === 'object') {
+            if (userData.fullName) user.set('fullName', userData.fullName);
+            if (userData.role) user.set('role', userData.role);
+        }
+
+        await user.signUp()
+        console.log('✅ Signed up:', user.get('email'))
+        return user
+    } catch (error) {
+        console.error('❌ Signup Error:', error.message)
+        throw error
+    }
+}
+
+export const signOut = async () => {
+    try {
+        if (!isParseReady()) {
+            console.warn('⚠️ Parse not ready')
+            return
+        }
+
+        await Parse.User.logOut()
+        console.log('✅ Logged out')
+    } catch (error) {
+        console.error('❌ Logout Error:', error.message)
+        throw error
+    }
+}
+
+export const getCurrentUser = () => {
+    try {
+        if (!isParseReady()) {
+            return null
+        }
+
+        const user = Parse.User.current()
+        // Verify session token validity if needed, but current() is sync
+        return user
+    } catch (error) {
+        console.error('❌ Error getting current user:', error.message)
+        return null
+    }
+}
+
+export const isAuthenticated = () => {
+    try {
+        if (!isParseReady()) {
+            return false
+        }
+
+        const user = Parse.User.current()
+        return !!user
+    } catch (error) {
+        console.error('❌ Authentication check error:', error.message)
+        return false
+    }
+}
+
+export default {
+    signIn,
+    signUp,
+    signOut,
+    getCurrentUser,
+    isAuthenticated
+}

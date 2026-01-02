@@ -5,7 +5,7 @@
 
 import React, { useState, useEffect } from 'react'
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom'
-import { authService } from './services/authService' // Use named import as per service definition
+import { getCurrentUser, isAuthenticated } from './services/authService'
 import Home from './pages/Home'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -75,38 +75,27 @@ function App() {
     const [initError, setInitError] = useState(null)
 
     useEffect(() => {
-        let unsubscribe = () => { };
-
         const initApp = async () => {
             try {
                 // Wait a brief moment to ensure Parse.initialize has fired in back4app.js
-                // although imports usually run first.
                 if (!isParseReady()) {
                     console.log("⏳ Waiting for Parse to initialize...");
                     await new Promise(resolve => setTimeout(resolve, 500));
                 }
 
-                if (!isParseReady()) {
-                    throw new Error("Failed to initialize Parse backend. Please check network connection or configuration.");
+                if (isAuthenticated()) {
+                    const currentUser = getCurrentUser()
+                    setUser(currentUser)
                 }
-
-                // Subscribe to auth changes
-                unsubscribe = authService.onAuthChange((currentUser) => {
-                    setUser(currentUser);
-                    setLoading(false);
-                });
             } catch (err) {
                 console.error("❌ App Initialization Error:", err);
                 setInitError(err.message);
+            } finally {
                 setLoading(false);
             }
         };
 
         initApp();
-
-        return () => {
-            if (typeof unsubscribe === 'function') unsubscribe();
-        }
     }, [])
 
     if (loading) {
