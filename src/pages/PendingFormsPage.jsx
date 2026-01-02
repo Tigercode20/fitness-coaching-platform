@@ -82,24 +82,66 @@ export default function PendingFormsPage() {
 
             // ✅ Field name normalization map (ClientForm -> ClientsPage format)
             const fieldNameMap = {
-                // Map lowercase to expected format
+                // == Basic Info ==
                 fullName: 'FullName',
                 email: 'Email',
                 phone: 'PhoneNumber',
-                age: 'Age',
+                country: 'Country',
+                religion: 'Religion',
                 gender: 'Gender',
-                mainGoal: 'Goal',
-                goalDetails: 'GoalDetails',
-                reason: 'JoinReason',
-                frontPhoto: 'PhotoFront',
-                sidePhoto: 'PhotoSide',
-                backPhoto: 'PhotoBack',
-                healthConditions: 'HealthIssues',
-                injuries: 'Injuries',
+                dob: 'DOB',
+                job: 'Job',
+                age: 'Age',
+
+                // == Health & Stats ==
+                weight: 'Weight',
+                height: 'Height',
+                goal: 'Goal',
+                subscriptionReason: 'JoinReason',
+                healthIssues: 'HealthIssues',
                 medications: 'Medications',
-                experienceLevel: 'TrainingExp',
-                trainingFrequency: 'TrainingDays',
-                notes: 'Notes'
+                injuries: 'Injuries',
+                smoker: 'Smoker',
+                labTest: 'DidTests',
+
+                // == Files & Images ==
+                frontImageUrl: 'PhotoFront',
+                sideImageUrl: 'PhotoSide',
+                backImageUrl: 'PhotoBack',
+                labFileUrl: 'TestsFile',
+                xrayFileUrl: 'XrayFile',
+
+                // == Nutrition ==
+                previousDiet: 'DietHistory',
+                dayNature: 'DailyActivity',
+                nonAdherenceReasons: 'ComplianceIssues',
+                stimulants: 'Caffeine',
+                previousDietFileUrl: 'LastDietFile',
+                foodAllergies: 'FoodAllergies',
+                dislikedFood: 'DislikedFood',
+                vitamins: 'WantVitamins',
+                mealsCount: 'MealsCount',
+                dietType: 'DietType',
+                budget: 'Budget',
+                favoriteProtein: 'FavProtein',
+                favoriteCarbs: 'FavCarbs',
+                favoriteFats: 'FavFats',
+
+                // == Training ==
+                exerciseExperience: 'TrainingExp',
+                weightTrainingDuration: 'LiftingDuration',
+                otherSports: 'OtherSports',
+                gymLocation: 'GymLocation',
+                availableTools: 'AvailableTools',
+                trainingDays: 'TrainingDays',
+                availableDays: 'AvailableDays',
+                painExercises: 'PainfulExercises',
+                cardioType: 'FavCardio',
+                dailySteps: 'StepsCount',
+
+                // == Other ==
+                onlineExperience: 'OnlineExp',
+                additionalNotes: 'Notes'
             };
 
             // ✅ Normalize field names and clean data
