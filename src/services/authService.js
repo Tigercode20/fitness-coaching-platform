@@ -23,8 +23,9 @@ export const signIn = async (email, password) => {
         console.log('✅ Logged in:', user.get('email'))
         return user
     } catch (error) {
-        console.error('❌ Login Error:', error.message)
-        throw error
+        console.error('❌ Login Error:', error);
+        console.error('Code:', error.code, 'Message:', error.message);
+        throw error;
     }
 }
 
@@ -56,8 +57,9 @@ export const signUp = async (email, password, userData) => {
         console.log('✅ Signed up:', user.get('email'))
         return user
     } catch (error) {
-        console.error('❌ Signup Error:', error.message)
-        throw error
+        console.error('❌ Signup Error:', error);
+        console.error('Code:', error.code, 'Message:', error.message);
+        throw error;
     }
 }
 
