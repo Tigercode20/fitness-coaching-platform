@@ -1,13 +1,13 @@
-// src/services/back4app.js - ✅ Robust Version
+// src/services/back4app.js - ✅ Simplified Browser Version
 
-import ParsePackage from 'parse';
+import ParsePkg from 'parse';
 
-// Handle ES Module / CommonJS interoperability (Fix "y is not a constructor")
-// If vite.config.js alias is working, this might simply be the object, but this check is safe.
-const Parse = ParsePackage.default || ParsePackage;
+// robust logic: If the alias returns a module wrapper, use window.Parse
+const Parse = (typeof ParsePkg.initialize === 'function')
+    ? ParsePkg
+    : (window.Parse || ParsePkg.default || ParsePkg);
 
 // Environment Variables
-// ADAPTATION: Using VITE_PARSE_... as these are the keys configured in your .env.local
 const PARSE_APPLICATION_ID = import.meta.env.VITE_PARSE_APPLICATION_ID;
 const PARSE_JAVASCRIPT_KEY = import.meta.env.VITE_PARSE_JAVASCRIPT_KEY;
 const PARSE_HOST_URL = 'https://parseapi.back4app.com/';
@@ -19,15 +19,11 @@ console.log('JS_KEY:', PARSE_JAVASCRIPT_KEY ? '✅ Present' : '❌ Missing');
 // Initialize Parse
 if (PARSE_APPLICATION_ID && PARSE_JAVASCRIPT_KEY) {
     try {
-        // Ensure initialize is a function before calling
-        if (typeof Parse.initialize === 'function') {
-            Parse.initialize(PARSE_APPLICATION_ID, PARSE_JAVASCRIPT_KEY);
-            Parse.serverURL = PARSE_HOST_URL;
-            console.log('✅ Parse initialized successfully');
-            console.log(`📡 Server: ${PARSE_HOST_URL}`);
-        } else {
-            console.error('❌ Error: Parse.initialize is not a function. Check import/version.');
-        }
+        // Direct initialization - trusting the alias
+        Parse.initialize(PARSE_APPLICATION_ID, PARSE_JAVASCRIPT_KEY);
+        Parse.serverURL = PARSE_HOST_URL;
+        console.log('✅ Parse initialized successfully');
+        console.log(`📡 Server: ${PARSE_HOST_URL}`);
     } catch (error) {
         console.error('❌ Error initializing Parse:', error);
     }
