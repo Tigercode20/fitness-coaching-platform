@@ -1,12 +1,8 @@
-// ============================================
-// src/pages/Register.jsx
-// Register Page
-// ============================================
-
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { signUp } from '../services/authService'
 import { validateEmail } from '../utils/helpers'
+import ThemeToggle from '../components/Common/ThemeToggle'
 
 export default function Register() {
     const navigate = useNavigate()
@@ -67,26 +63,31 @@ export default function Register() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-primary/5 to-primary/10 flex items-center justify-center px-4 py-8">
-            <div className="max-w-md w-full">
-                <div className="card">
+        <div className="min-h-screen bg-gradient-to-br from-blue-50 to-teal-50 dark:from-gray-900 dark:to-gray-800 flex items-center justify-center p-4 transition-colors duration-300">
+            <div className="fixed top-4 left-4 z-50">
+                <ThemeToggle />
+            </div>
+            <div className="w-full max-w-md">
+                <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl p-8 border border-gray-100 dark:border-gray-700 backdrop-blur-sm transition-colors duration-300">
                     <div className="text-center mb-8">
-                        <h1 className="text-3xl font-bold text-primary mb-2">💪</h1>
-                        <h2 className="text-2xl font-bold text-dark">إنشاء حساب جديد</h2>
-                        <p className="text-gray-600 mt-2">
+                        <div className="text-4xl mb-2">💪</div>
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white">إنشاء حساب جديد</h2>
+                        <p className="text-gray-500 dark:text-gray-400 mt-2 text-sm">
                             انضم إلى منصة المدرب الأونلاين
                         </p>
                     </div>
 
                     {error && (
-                        <div className="alert alert-danger mb-4">
+                        <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-4 rounded-lg mb-6 text-center text-sm font-medium border border-red-100 dark:border-red-800">
                             {error}
                         </div>
                     )}
 
-                    <form onSubmit={handleSubmit}>
-                        <div className="form-group">
-                            <label htmlFor="fullName">الاسم الكامل</label>
+                    <form onSubmit={handleSubmit} className="space-y-4">
+                        <div>
+                            <label htmlFor="fullName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                الاسم الكامل
+                            </label>
                             <input
                                 type="text"
                                 id="fullName"
@@ -94,30 +95,37 @@ export default function Register() {
                                 value={formData.fullName}
                                 onChange={handleChange}
                                 placeholder="أدخل اسمك الكامل"
+                                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all outline-none"
                                 disabled={loading}
                             />
                         </div>
 
-                        <div className="form-group">
-                            <label htmlFor="email">البريد الإلكتروني</label>
+                        <div>
+                            <label htmlFor="email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                البريد الإلكتروني
+                            </label>
                             <input
                                 type="email"
                                 id="email"
                                 name="email"
                                 value={formData.email}
                                 onChange={handleChange}
-                                placeholder="أدخل بريدك الإلكتروني"
+                                placeholder="name@example.com"
+                                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all outline-none"
                                 disabled={loading}
                             />
                         </div>
 
-                        <div className="form-group">
-                            <label htmlFor="role">الدور</label>
+                        <div>
+                            <label htmlFor="role" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                الدور
+                            </label>
                             <select
                                 id="role"
                                 name="role"
                                 value={formData.role}
                                 onChange={handleChange}
+                                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all outline-none"
                                 disabled={loading}
                             >
                                 <option value="coach">مدرب</option>
@@ -125,48 +133,62 @@ export default function Register() {
                             </select>
                         </div>
 
-                        <div className="form-group">
-                            <label htmlFor="password">كلمة المرور</label>
+                        <div>
+                            <label htmlFor="password" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                كلمة المرور
+                            </label>
                             <input
                                 type="password"
                                 id="password"
                                 name="password"
                                 value={formData.password}
                                 onChange={handleChange}
-                                placeholder="أدخل كلمة المرور"
+                                placeholder="••••••••"
+                                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all outline-none"
                                 disabled={loading}
                             />
                         </div>
 
-                        <div className="form-group">
-                            <label htmlFor="confirmPassword">تأكيد كلمة المرور</label>
+                        <div>
+                            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                                تأكيد كلمة المرور
+                            </label>
                             <input
                                 type="password"
                                 id="confirmPassword"
                                 name="confirmPassword"
                                 value={formData.confirmPassword}
                                 onChange={handleChange}
-                                placeholder="أعد إدخال كلمة المرور"
+                                placeholder="••••••••"
+                                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-all outline-none"
                                 disabled={loading}
                             />
                         </div>
 
                         <button
                             type="submit"
-                            className="btn btn-primary btn-full"
+                            className="w-full bg-teal-600 hover:bg-teal-700 text-white font-bold py-3 px-4 rounded-lg transition-all duration-200 transform hover:scale-[1.02] active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none shadow-lg shadow-teal-500/30 mt-4"
                             disabled={loading}
                         >
-                            {loading ? 'جاري الإنشاء...' : 'إنشاء الحساب'}
+                            {loading ? (
+                                <span className="flex items-center justify-center gap-2">
+                                    <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                    </svg>
+                                    جاري الإنشاء...
+                                </span>
+                            ) : 'إنشاء الحساب'}
                         </button>
                     </form>
 
-                    <div className="mt-6 pt-6 border-t border-border-color">
-                        <p className="text-center text-gray-600 mb-4">
+                    <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-700 text-center">
+                        <p className="text-gray-500 dark:text-gray-400 text-sm mb-4">
                             هل لديك حساب بالفعل؟
                         </p>
                         <Link
                             to="/login"
-                            className="btn btn-outline btn-full"
+                            className="inline-block w-full py-3 px-4 rounded-lg border-2 border-teal-600 dark:border-teal-500 text-teal-600 dark:text-teal-500 font-bold hover:bg-teal-50 dark:hover:bg-teal-900/20 transition-all duration-200"
                         >
                             دخول الحساب
                         </Link>
