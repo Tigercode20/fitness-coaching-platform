@@ -16,6 +16,7 @@ import {
     FaCog,
     FaLink
 } from 'react-icons/fa'
+import { addFakeData, clearAllData } from '../../services/fakeDataUtils'
 
 export default function Sidebar({ isOpen, onClose }) {
     const location = useLocation()
@@ -220,6 +221,31 @@ export default function Sidebar({ isOpen, onClose }) {
                         <span>🚪</span>
                         <span className="text-sm font-medium">تسجيل الخروج</span>
                     </Link>
+
+                    {/* Developer Tools */}
+                    <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
+                        <button
+                            onClick={async () => {
+                                const success = await addFakeData(5);
+                                if (success) {
+                                    alert('✅ Added 5 Fake Clients & Subscriptions!');
+                                    window.location.reload();
+                                }
+                            }}
+                            className="w-full px-3 py-2 bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-bold rounded flex items-center justify-center gap-2 transition"
+                        >
+                            ➕ بيانات وهمية (5)
+                        </button>
+                        <button
+                            onClick={async () => {
+                                const success = await clearAllData();
+                                if (success) window.location.reload();
+                            }}
+                            className="w-full px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs rounded transition"
+                        >
+                            🗑️ حذف جميع البيانات
+                        </button>
+                    </div>
                 </div>
             </aside>
         </>
