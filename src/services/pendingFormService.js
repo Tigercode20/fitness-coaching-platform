@@ -47,13 +47,21 @@ export const getPendingForms = async () => {
         query.descending('submittedAt');
 
         const results = await query.find();
-        return results.map(doc => ({
-            id: doc.id,
-            ...doc.attributes,
-            // Ensure 'data' attribute is spread or accessible
-            ...doc.get('data'),
-            submittedAt: doc.get('submittedAt')
-        }));
+        return results.map(doc => {
+            const data = doc.get('data') || {};
+            // Destructure status from data to prevent overwriting top-level status
+            const { status: _ignoredStatus, ...cleanData } = data;
+
+            return {
+                id: doc.id,
+                ...cleanData,
+                ...doc.attributes, // attributes (including status) should come LAST or be explicit
+                // specifically ensure critical fields are from top-level
+                status: doc.get('status'),
+                createdAt: doc.createdAt,
+                submittedAt: doc.get('submittedAt')
+            };
+        });
     } catch (error) {
         throw new Error(`Error fetching pending forms: ${error.message}`);
     }
@@ -177,15 +185,20 @@ export const getApprovedFormsByClient = async (clientCode) => {
 
         // Filter client-side because nested JSON queries can be unreliable without indexing
         return results
-            .map(doc => ({
-                id: doc.id,
-                ...doc.attributes,
-                ...doc.get('data'), // specific fields might overwrite attributes
-                submittedAt: doc.get('submittedAt'),
-                approvedAt: doc.get('approvedAt'),
-                // Ensure we handle both casing
-                targetClientCode: doc.get('data')?.clientCode || doc.get('data')?.ClientCode
-            }))
+            .map(doc => {
+                const data = doc.get('data') || {};
+                const { status: _ignoredStatus, ...cleanData } = data;
+
+                return {
+                    id: doc.id,
+                    ...cleanData,
+                    ...doc.attributes,
+                    status: doc.get('status'), // Ensure top-level status wins
+                    submittedAt: doc.get('submittedAt'),
+                    approvedAt: doc.get('approvedAt'),
+                    targetClientCode: data.clientCode || data.ClientCode
+                };
+            })
             .filter(form => String(form.targetClientCode) === String(clientCode));
 
     } catch (error) {
