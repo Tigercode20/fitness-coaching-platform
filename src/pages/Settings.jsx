@@ -37,6 +37,39 @@ export default function Settings() {
     const [newPackage, setNewPackage] = useState({ name: '', description: '' })
     const [newCurrency, setNewCurrency] = useState({ code: '', rate: '' })
 
+    // State for editing
+    const [editingCurrency, setEditingCurrency] = useState(null)
+
+    // قائمة العملات المتاحة
+    const AVAILABLE_CURRENCIES = [
+        { code: 'EGP', name: 'Egyptian Pound' },
+        { code: 'USD', name: 'US Dollar' },
+        { code: 'EUR', name: 'Euro' },
+        { code: 'SAR', name: 'Saudi Riyal' },
+        { code: 'AED', name: 'UAE Dirham' },
+        { code: 'KWD', name: 'Kuwaiti Dinar' },
+        { code: 'GBP', name: 'British Pound' },
+        { code: 'CAD', name: 'Canadian Dollar' },
+        { code: 'AUD', name: 'Australian Dollar' },
+        { code: 'JPY', name: 'Japanese Yen' },
+        { code: 'QAR', name: 'Qatari Riyal' },
+        { code: 'BHD', name: 'Bahraini Dinar' },
+        { code: 'OMR', name: 'Omani Rial' },
+        { code: 'JOD', name: 'Jordanian Dinar' }
+    ]
+
+    // جلب سعر الصرف المباشر
+    const fetchLiveRate = async (base, target) => {
+        try {
+            const response = await fetch(`https://api.exchangerate-api.com/v4/latest/${base}`)
+            const data = await response.json()
+            return data.rates[target]
+        } catch (error) {
+            console.error('Failed to fetch rate:', error)
+            return null
+        }
+    }
+
     useEffect(() => {
         loadSettings()
     }, [])
@@ -131,9 +164,30 @@ export default function Settings() {
                 settingsObj = new (Parse.Object.extend('Settings'))()
             }
 
+            // التحقق من تغيير العملة الرئيسية
+            const oldPrimary = settings.primaryCurrency
+            const newPrimary = formData.primaryCurrency
+
+            let updatedCurrencies = [...settings.currencies]
+
+            if (oldPrimary !== newPrimary) {
+                // نحتاج لإعادة حساب أسعار الصرف بالنسبة للعملة الجديدة
+                const newPrimaryObj = settings.currencies.find(c => c.code === newPrimary)
+                const conversionFactor = newPrimaryObj ? newPrimaryObj.rate : 1
+
+                updatedCurrencies = updatedCurrencies.map(c => {
+                    if (c.code === newPrimary) return { ...c, rate: 1, isManual: false }
+                    return {
+                        ...c,
+                        rate: parseFloat((c.rate / conversionFactor).toFixed(4))
+                    }
+                })
+            }
+
             settingsObj.set('businessName', formData.businessName)
             settingsObj.set('primaryCurrency', formData.primaryCurrency)
             settingsObj.set('language', formData.language)
+            settingsObj.set('currencies', updatedCurrencies)
 
             // رفع الصورة
             if (formData.businessLogo) {
@@ -143,7 +197,7 @@ export default function Settings() {
             }
 
             await settingsObj.save()
-            toast.success('✅ تم حفظ البيانات بنجاح!')
+            toast.success('✅ تم حفظ البيانات وتحديث العملات!')
             loadSettings()
         } catch (error) {
             console.error('❌ خطأ:', error)
