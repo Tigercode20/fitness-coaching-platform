@@ -4,12 +4,17 @@ import { getAllClients } from '../services/clientService'
 import { getSalesBy } from '../services/salesService'
 import { getSettings } from '../services/settingsService'
 import { Link } from 'react-router-dom'
+import EditClientModal from '../components/Modals/EditClientModal'
+import ClientDetailsModal from '../components/Modals/ClientDetailsModal'
 
 export default function DashboardOverview() {
     const [clients, setClients] = useState([])
     const [sales, setSales] = useState([])
     const [businessInfo, setBusinessInfo] = useState({ name: 'Fitness Coaching', logo: '' })
     const [settings, setSettings] = useState({ primaryCurrency: 'EGP', currencies: [] })
+    const [editingClient, setEditingClient] = useState(null)
+    const [viewingClient, setViewingClient] = useState(null)
+    const [actionClient, setActionClient] = useState(null) // Client selected for action choice
     const [stats, setStats] = useState({
         totalClients: 0,
         totalSubscriptions: 0,
@@ -223,8 +228,8 @@ export default function DashboardOverview() {
                 {/* الأقسام الرئيسية */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* العملاء الأخيرين */}
-                    <div className="rounded-lg shadow-lg p-6 hover:shadow-xl transition bg-white dark:bg-gray-800">
-                        <div className="flex justify-between items-center mb-6">
+                    <div className="rounded-lg shadow-lg p-6 hover:shadow-xl transition bg-white dark:bg-gray-800 flex flex-col h-[450px]">
+                        <div className="flex justify-between items-center mb-4 flex-shrink-0">
                             <h2 className="text-2xl font-bold">👥 العملاء الأخيرين</h2>
                             <Link
                                 to="/clients"
@@ -239,15 +244,16 @@ export default function DashboardOverview() {
                                 لا يوجد عملاء حتى الآن
                             </p>
                         ) : (
-                            <div className="space-y-4">
-                                {clients.map(client => (
+                            <div className="space-y-4 overflow-y-auto flex-1 pr-2 custom-scrollbar">
+                                {clients.slice(0, 10).map(client => (
                                     <div
                                         key={client.id}
-                                        className="p-4 rounded-lg border-l-4 border-blue-500 hover:shadow-md transition bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600"
+                                        onClick={() => setActionClient(client)}
+                                        className="p-4 rounded-lg border-l-4 border-blue-500 hover:shadow-md transition bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600 cursor-pointer group"
                                     >
                                         <div className="flex justify-between items-start">
                                             <div>
-                                                <h3 className="font-bold text-lg">{client.fullName || client.FullName}</h3>
+                                                <h3 className="font-bold text-lg group-hover:text-blue-500 transition-colors">{client.fullName || client.FullName}</h3>
                                                 <p className="text-sm text-gray-600 dark:text-gray-400">
                                                     📧 {client.email || client.Email}
                                                 </p>
@@ -267,17 +273,19 @@ export default function DashboardOverview() {
                             </div>
                         )}
 
-                        <Link
-                            to="/clients"
-                            className="mt-6 w-full inline-block text-center bg-blue-500 text-white py-2 rounded-lg font-semibold hover:bg-blue-600 transition"
-                        >
-                            👁️ عرض جميع العملاء
-                        </Link>
+                        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
+                            <Link
+                                to="/clients"
+                                className="w-full inline-block text-center bg-blue-500 text-white py-2 rounded-lg font-semibold hover:bg-blue-600 transition"
+                            >
+                                👁️ عرض جميع العملاء
+                            </Link>
+                        </div>
                     </div>
 
                     {/* الاشتراكات الحديثة */}
-                    <div className="rounded-lg shadow-lg p-6 hover:shadow-xl transition bg-white dark:bg-gray-800">
-                        <div className="flex justify-between items-center mb-6">
+                    <div className="rounded-lg shadow-lg p-6 hover:shadow-xl transition bg-white dark:bg-gray-800 flex flex-col h-[450px]">
+                        <div className="flex justify-between items-center mb-4 flex-shrink-0">
                             <h2 className="text-2xl font-bold">📋 الاشتراكات الحديثة</h2>
                             <Link
                                 to="/subscriptions"
@@ -287,13 +295,13 @@ export default function DashboardOverview() {
                             </Link>
                         </div>
 
-                        {sales.length === 0 ? (
+                        {sales.filter(s => (new Date() - new Date(s.get('timestamp'))) / 86400000 <= 15).length === 0 ? (
                             <p className="text-center py-8 text-gray-500 dark:text-gray-400">
-                                لا توجد اشتراكات حتى الآن
+                                لا توجد اشتراكات في آخر 15 يوم
                             </p>
                         ) : (
-                            <div className="space-y-4">
-                                {sales.map(sale => (
+                            <div className="space-y-4 overflow-y-auto flex-1 pr-2 custom-scrollbar">
+                                {sales.filter(s => (new Date() - new Date(s.get('timestamp'))) / 86400000 <= 15).map(sale => (
                                     <div
                                         key={sale.id}
                                         className="p-4 rounded-lg border-l-4 border-green-500 hover:shadow-md transition bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600"
@@ -323,12 +331,14 @@ export default function DashboardOverview() {
                             </div>
                         )}
 
-                        <Link
-                            to="/subscriptions"
-                            className="mt-6 w-full inline-block text-center bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600 transition"
-                        >
-                            📊 عرض جميع الاشتراكات
-                        </Link>
+                        <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700 flex-shrink-0">
+                            <Link
+                                to="/subscriptions"
+                                className="w-full inline-block text-center bg-green-500 text-white py-2 rounded-lg font-semibold hover:bg-green-600 transition"
+                            >
+                                📊 عرض جميع الاشتراكات
+                            </Link>
+                        </div>
                     </div>
                 </div>
 
@@ -362,6 +372,59 @@ export default function DashboardOverview() {
                     </Link>
                 </div>
             </div>
+            {/* Client Details Modal (View Only) */}
+            <ClientDetailsModal
+                client={viewingClient}
+                isOpen={!!viewingClient}
+                onClose={() => setViewingClient(null)}
+            />
+
+            {/* Action Selection Modal (View or Edit) */}
+            {actionClient && (
+                <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+                    <div className="bg-white dark:bg-gray-800 rounded-xl p-6 shadow-2xl w-full max-w-sm border dark:border-gray-700 transform transition-all scale-100">
+                        <h3 className="text-xl font-bold mb-6 text-center dark:text-white">
+                            ماذا تريد أن تفعل مع <span className="text-blue-500">{actionClient.fullName || actionClient.FullName}</span>؟
+                        </h3>
+                        <div className="flex flex-col gap-3">
+                            <button
+                                onClick={() => {
+                                    setViewingClient(actionClient)
+                                    setActionClient(null)
+                                }}
+                                className="w-full py-3 px-4 bg-teal-500 hover:bg-teal-600 text-white rounded-lg font-semibold transition flex items-center justify-center gap-2"
+                            >
+                                <span className="text-xl">👁️</span> عرض التفاصيل
+                            </button>
+                            <button
+                                onClick={() => {
+                                    setEditingClient(actionClient)
+                                    setActionClient(null)
+                                }}
+                                className="w-full py-3 px-4 bg-blue-500 hover:bg-blue-600 text-white rounded-lg font-semibold transition flex items-center justify-center gap-2"
+                            >
+                                <span className="text-xl">✏️</span> تعديل البيانات
+                            </button>
+                            <button
+                                onClick={() => setActionClient(null)}
+                                className="w-full py-2 px-4 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 font-medium transition mt-2"
+                            >
+                                إلغاء
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Edit Client Modal */}
+            <EditClientModal
+                client={editingClient}
+                isOpen={!!editingClient}
+                onClose={() => setEditingClient(null)}
+                onUpdate={(updatedClient) => {
+                    setClients(prev => prev.map(c => c.id === updatedClient.id ? updatedClient : c))
+                }}
+            />
         </div>
     )
 }

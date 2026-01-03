@@ -1338,3 +1338,44 @@ tbody tr:last-child td {
         font-size: var(--font-size-xs);
     }
 }
+
+/* ============================================
+   Custom Scrollbar (Global & Premium)
+   ============================================ */
+/* Webkit Browsers */
+::-webkit-scrollbar {
+    width: 6px;       /* Width */
+    height: 6px;      /* Height for horizontal scroll */
+}
+
+::-webkit-scrollbar-track {
+    background: transparent; 
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--color-gray-300);
+    border-radius: 9999px;
+    /* Optional: border to make it look "floating" inside track if track had color */
+    border: 1px solid transparent; 
+    background-clip: content-box; 
+    transition: background-color 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-primary);
+}
+
+/* Dark Mode Specifics */
+@media (prefers-color-scheme: dark) {
+    ::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
+    ::-webkit-scrollbar-thumb:hover {
+        background-color: var(--color-primary);
+    }
+}
+
+/* Custom class for specific overflow containers if needed ensuring style */
+.custom-scrollbar::-webkit-scrollbar {
+    width: 6px;
+}
