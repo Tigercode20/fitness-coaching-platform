@@ -341,7 +341,7 @@ export default function Settings() {
                     // Try to fetch live rate
                     let rate = parseFloat(newCurrency.rate)
                     if (!rate || isNaN(rate)) {
-                        const liveRate = await fetchLiveRate(settings.primaryCurrency, newCurrency.code)
+                        const liveRate = await fetchLiveRate(newCurrency.code, settings.primaryCurrency)
                         rate = liveRate || 1
                     }
 
@@ -371,7 +371,7 @@ export default function Settings() {
     const handleRefreshRate = async (currency) => {
         setLoading(true)
         try {
-            const liveRate = await fetchLiveRate(settings.primaryCurrency, currency.code)
+            const liveRate = await fetchLiveRate(currency.code, settings.primaryCurrency)
             if (liveRate) {
                 const query = new Parse.Query('Settings')
                 const settingsObj = await query.first()
@@ -786,7 +786,7 @@ export default function Settings() {
                                                     onChange={(e) => {
                                                         setNewCurrency({ ...newCurrency, code: e.target.value })
                                                         if (e.target.value) {
-                                                            fetchLiveRate(settings.primaryCurrency, e.target.value)
+                                                            fetchLiveRate(e.target.value, settings.primaryCurrency)
                                                                 .then(rate => {
                                                                     if (rate) setNewCurrency(prev => ({ ...prev, code: e.target.value, rate: rate }))
                                                                 })
