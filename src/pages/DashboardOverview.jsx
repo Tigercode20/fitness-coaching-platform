@@ -71,8 +71,8 @@ export default function DashboardOverview() {
 
     return (
         <div className={`min-h-screen transition-colors ${darkMode
-                ? 'bg-gray-900 text-white'
-                : 'bg-gray-50 text-gray-900'
+            ? 'bg-gray-900 text-white'
+            : 'bg-gray-50 text-gray-900'
             } p-8`}>
             <div className="max-w-7xl mx-auto">
                 {/* الرأس مع زر Dark Mode */}
@@ -99,8 +99,8 @@ export default function DashboardOverview() {
                     <button
                         onClick={() => setDarkMode(!darkMode)}
                         className={`px-6 py-3 rounded-lg font-bold transition flex items-center gap-2 ${darkMode
-                                ? 'bg-yellow-500 text-black hover:bg-yellow-600'
-                                : 'bg-gray-800 text-white hover:bg-gray-700'
+                            ? 'bg-yellow-500 text-black hover:bg-yellow-600'
+                            : 'bg-gray-800 text-white hover:bg-gray-700'
                             }`}
                     >
                         {darkMode ? '☀️ وضع النهار' : '🌙 وضع الليل'}
@@ -234,19 +234,19 @@ export default function DashboardOverview() {
                                     >
                                         <div className="flex justify-between items-start">
                                             <div>
-                                                <h3 className="font-bold text-lg">{client.get('fullName')}</h3>
+                                                <h3 className="font-bold text-lg">{client.fullName || client.FullName}</h3>
                                                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                    📧 {client.get('email')}
+                                                    📧 {client.email || client.Email}
                                                 </p>
                                                 <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
-                                                    🔢 {client.get('phone')}
+                                                    🔢 {client.phone || client.Phone}
                                                 </p>
                                             </div>
                                             <span className={`text-xs px-3 py-1 rounded-full font-semibold ${darkMode
-                                                    ? 'bg-blue-900 text-blue-200'
-                                                    : 'bg-blue-100 text-blue-800'
+                                                ? 'bg-blue-900 text-blue-200'
+                                                : 'bg-blue-100 text-blue-800'
                                                 }`}>
-                                                🆔 {client.get('code')}
+                                                🆔 {client.code || client.ClientCode}
                                             </span>
                                         </div>
                                         <p className={`text-xs mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
@@ -301,8 +301,8 @@ export default function DashboardOverview() {
                                                 </p>
                                             </div>
                                             <span className={`text-xs px-3 py-1 rounded-full font-semibold ${sale.get('subscriptionType') === 'new'
-                                                    ? (darkMode ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800')
-                                                    : (darkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800')
+                                                ? (darkMode ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800')
+                                                : (darkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800')
                                                 }`}>
                                                 {sale.get('subscriptionType') === 'new' ? '✨ جديد' : '🔄 تجديد'}
                                             </span>
