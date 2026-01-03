@@ -40,10 +40,13 @@ export default function ClientDetailsModal({ client, isOpen, onClose }) {
                             <DetailRow label="الوزن الحالي" value={client.Weight} />
                             <DetailRow label="الطول" value={client.Height} />
                             <DetailRow label="هل تعاني من مشاكل صحية؟" value={client.HealthIssues} />
-                            <DetailRow label="هل تستخدم أدوية؟" value={client.Medications} />
+                            <DetailRow label="هل تستخدم أدوية؟" value={client.Medications || client.medications} />
+                            <DetailRow label="تفاصيل الأدوية" value={client.MedicationsDetails || client.medicationsDetails} />
                             <DetailRow label="هل لديك إصابات؟" value={client.Injuries} />
                             <DetailRow label="هل أنت مدخن؟" value={client.Smoker} />
-                            <DetailRow label="عمل تحاليل مؤخراً؟" value={client.DidTests} />
+                            <DetailRow label="عمل تحاليل مؤخراً؟" value={client.DidTests || client.labTest} />
+                            <DetailRow label="عمليات جراحية" value={client.Surgeries || client.surgeries} />
+                            <DetailRow label="تفاصيل العمليات" value={client.SurgeriesDetails || client.surgeriesDetails} />
                             <FileLink label="ملف التحاليل" url={client.TestsFile} />
                             <FileLink label="ملف الأشعة" url={client.XrayFile} />
                         </div>
@@ -57,7 +60,8 @@ export default function ClientDetailsModal({ client, isOpen, onClose }) {
                             <DetailRow label="تاريخ الدايت السابق" value={client.DietHistory} />
                             <DetailRow label="طبيعة اليوم والمجهود" value={client.DailyActivity} />
                             <DetailRow label="أسباب عدم الالتزام" value={client.ComplianceIssues} />
-                            <DetailRow label="هل تشرب منبهات؟" value={client.Caffeine} />
+                            <DetailRow label="هل تشرب منبهات؟" value={client.Caffeine || client.stimulants} />
+                            <DetailRow label="تفاصيل المنبهات" value={client.StimulantsNotes || client.stimulantsNotes} />
                             <DetailRow label="حساسية من طعام" value={client.FoodAllergies} />
                             <DetailRow label="طعام لا تحبه" value={client.DislikedFood} />
                             <DetailRow label="هل تريد فيتامينات؟" value={client.WantVitamins} />
@@ -92,8 +96,8 @@ export default function ClientDetailsModal({ client, isOpen, onClose }) {
                     <section className="md:col-span-2">
                         <h3 className="text-lg font-bold text-teal-600 dark:text-teal-400 mb-4 border-b pb-2">ℹ️ معلومات إضافية</h3>
                         <div className="grid md:grid-cols-2 gap-4">
-                            <DetailRow label="تجربة سابقة أونلاين؟" value={client.OnlineExp} />
-                            <DetailRow label="سبب الاشتراك معنا؟" value={client.JoinReason} />
+                            <DetailRow label="تجارب أونلاين سابقة" value={client.OnlineExp || client.onlineExperience} />
+                            <DetailRow label="سبب الاشتراك معنا" value={client.JoinReason || client.subscriptionReason} />
                         </div>
                     </section>
 

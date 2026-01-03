@@ -134,11 +134,12 @@ export default function TrainingPlanPage() {
 
 🍎 التغذية:
 - الهدف: ${client.Goal}
-- نشاط يومي: ${client.DailyActivity}
+- طبيعة اليوم والمجهود: ${client.DailyActivity}
 - عدد الوجبات: ${client.MealsCount}
 - الميزانية: ${client.Budget}
 - ممنوعات: ${client.DislikedFood}
 - حساسية: ${client.FoodAllergies}
+- تفاصيل المنبهات: ${client.StimulantsNotes || client.stimulantsNotes || 'لا يوجد'}
 
 💪 التمرين:
 - الخبرة: ${client.TrainingExp}
@@ -146,9 +147,14 @@ export default function TrainingPlanPage() {
 - مكان التمرين: ${client.GymLocation}
 - أدوات: ${client.AvailableTools}
 - إصابات: ${client.Injuries}
+- عمليات جراحية: ${client.Surgeries || client.surgeries}
+- تفاصيل العمليات: ${client.SurgeriesDetails || client.surgeriesDetails}
+- تفاصيل الأدوية: ${client.MedicationsDetails || client.medicationsDetails}
 - تمارين مكروهة / مؤلمة: ${client.PainfulExercises}
 
-📝 ملاحظات:
+📝 معلومات إضافية وملاحظات:
+- تجارب أونلاين سابقة: ${client.OnlineExp || client.onlineExperience || 'لا يوجد'}
+- سبب الاشتراك: ${client.JoinReason || client.subscriptionReason || 'لا يوجد'}
 ${client.Notes || 'لا يوجد'}
 ${client.additionalNotes ? '- ملاحظات إضافية: ' + client.additionalNotes : ''}
         `.trim()
