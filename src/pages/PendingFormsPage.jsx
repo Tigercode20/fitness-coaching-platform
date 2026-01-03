@@ -419,7 +419,7 @@ export default function PendingFormsPage() {
                             {filteredForms.filter(f => f.type !== 'update').length === 0 ? (
                                 <p className="text-gray-500 italic text-center py-4 bg-gray-100 dark:bg-gray-800 rounded-lg">لا توجد فورمات تسجيل</p>
                             ) : (
-                                <div className="space-y-3">
+                                <div className="space-y-3 max-h-[250px] overflow-y-auto pr-1 custom-scrollbar">
                                     {filteredForms.filter(f => f.type !== 'update').map(form => (
                                         <div
                                             key={form.id}
@@ -463,7 +463,7 @@ export default function PendingFormsPage() {
                             {filteredForms.filter(f => f.type === 'update').length === 0 ? (
                                 <p className="text-gray-500 italic text-center py-4 bg-gray-100 dark:bg-gray-800 rounded-lg">لا توجد فورمات تحديث</p>
                             ) : (
-                                <div className="space-y-3">
+                                <div className="space-y-3 max-h-[500px] overflow-y-auto pr-1 custom-scrollbar">
                                     {filteredForms.filter(f => f.type === 'update').map(form => (
                                         <div
                                             key={form.id}
