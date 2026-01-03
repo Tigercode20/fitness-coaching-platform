@@ -37,7 +37,10 @@ export default function ClientForm() {
         healthIssues: '',
         labTest: '',
         medications: '',
+        medicationsDetails: '', // تفاصيل الأدوية
         injuries: '',
+        surgeries: '', // عمليات جراحية
+        surgeriesDetails: '', // تفاصيل العمليات
         smoker: '',
         labFileUrl: '',
         xrayFileUrl: '',
@@ -45,6 +48,7 @@ export default function ClientForm() {
         dayNature: '',
         nonAdherenceReasons: '',
         stimulants: '',
+        stimulantsNotes: '', // ملاحظات المنبهات
         previousDietFileUrl: '',
         foodAllergies: '',
         dislikedFood: '',
@@ -501,7 +505,7 @@ export default function ClientForm() {
                             />
                         </div>
                         <div>
-                            <label className="block font-bold mb-2">سبب الاشتراك (لماذا الآن؟)</label>
+                            <label className="block font-bold mb-2">ما سبب اشتراكك معي؟</label>
                             <textarea
                                 name="subscriptionReason"
                                 value={formData.subscriptionReason}
@@ -639,6 +643,18 @@ export default function ClientForm() {
                                 <option value="yes">نعم</option>
                                 <option value="no">لا</option>
                             </select>
+                            {formData.medications === 'yes' && (
+                                <div className="mt-2 animate-fadeIn">
+                                    <textarea
+                                        name="medicationsDetails"
+                                        value={formData.medicationsDetails}
+                                        onChange={handleInputChange}
+                                        placeholder="اكتب أنواع الأدوية التي تستخدمها..."
+                                        className="w-full border p-2 rounded h-20 dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-teal-500"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">يرجى كتابة كافة التفاصيل</p>
+                                </div>
+                            )}
                         </div>
 
                         <div>
@@ -662,6 +678,31 @@ export default function ClientForm() {
                                 {formData.xrayFileUrl && <p className="text-green-600 mt-2">✅ ملف مرفوع</p>}
                             </div>
                         )}
+
+                        <div>
+                            <label className="block font-bold mb-2">هل قمت بعمل أي عملية جراحية من قبل؟</label>
+                            <select
+                                name="surgeries"
+                                value={formData.surgeries}
+                                onChange={handleSelectChange}
+                                className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors"
+                            >
+                                <option value="">اختر...</option>
+                                <option value="yes">نعم</option>
+                                <option value="no">لا</option>
+                            </select>
+                            {formData.surgeries === 'yes' && (
+                                <div className="mt-2 animate-fadeIn">
+                                    <textarea
+                                        name="surgeriesDetails"
+                                        value={formData.surgeriesDetails}
+                                        onChange={handleInputChange}
+                                        placeholder="ما اسم العملية ومتى قمت بها؟"
+                                        className="w-full border p-2 rounded h-20 dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-teal-500"
+                                    />
+                                </div>
+                            )}
+                        </div>
 
                         <div>
                             <label className="block font-bold mb-2">هل أنت مدخن؟</label>
@@ -701,7 +742,7 @@ export default function ClientForm() {
                         {formData.previousDiet === 'yes' && (
                             <>
                                 <div>
-                                    <label className="block font-bold mb-2">طبيعة يومك ومجهودك</label>
+                                    <label className="block font-bold mb-2">اوصف طبيعة يومك ومقدار المجهود المبذول فيه</label>
                                     <textarea
                                         name="dayNature"
                                         value={formData.dayNature}
@@ -712,7 +753,7 @@ export default function ClientForm() {
                                 </div>
 
                                 <div>
-                                    <label className="block font-bold mb-2">أسباب عدم الالتزام</label>
+                                    <label className="block font-bold mb-2">من وجهة نظرك .. ما هي الأسباب التي تجعلك غير قادر على الالتزام بالدايت؟</label>
                                     <textarea
                                         name="nonAdherenceReasons"
                                         value={formData.nonAdherenceReasons}
@@ -746,6 +787,18 @@ export default function ClientForm() {
                                 <option value="yes">نعم</option>
                                 <option value="no">لا</option>
                             </select>
+                            {formData.stimulants === 'yes' && (
+                                <div className="mt-2 animate-fadeIn">
+                                    <textarea
+                                        name="stimulantsNotes"
+                                        value={formData.stimulantsNotes}
+                                        onChange={handleInputChange}
+                                        placeholder="مثال: قهوة علي الريحة، شاي ربع ملعقة سكر..."
+                                        className="w-full border p-2 rounded h-20 dark:bg-gray-700 dark:border-gray-600 focus:ring-2 focus:ring-teal-500"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">اكتب تفضيلاتك في الشاي والقهوة</p>
+                                </div>
+                            )}
                         </div>
                     </div>
                 </section>
@@ -957,7 +1010,7 @@ export default function ClientForm() {
                         <div>
                             <label className="block font-bold mb-2">عدد الخطوات اليومية</label>
                             <input
-                                type="number"
+                                type="text"
                                 name="dailySteps"
                                 value={formData.dailySteps}
                                 onChange={handleInputChange}
@@ -972,7 +1025,7 @@ export default function ClientForm() {
                     <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-teal-400">📝 معلومات إضافية</h2>
                     <div className="space-y-4 text-gray-700 dark:text-gray-300">
                         <div>
-                            <label className="block font-bold mb-2">تجربتك مع الأونلاين كوتشينج</label>
+                            <label className="block font-bold mb-2">تحدث عن تجاربك السابقة مع التدريب الأونلاين</label>
                             <textarea
                                 name="onlineExperience"
                                 value={formData.onlineExperience}
