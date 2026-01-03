@@ -198,9 +198,10 @@ export default function SubscriptionsPage() {
                                                     onChange={(e) => setEditFormData({ ...editFormData, currency: e.target.value })}
                                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                                                 >
-                                                    {settings?.currencies?.map(currency => (
-                                                        <option key={currency} value={currency}>{currency}</option>
-                                                    ))}
+                                                    {settings?.currencies?.map(currency => {
+                                                        const code = typeof currency === 'object' ? currency.code : currency
+                                                        return <option key={code} value={code}>{code}</option>
+                                                    })}
                                                     {(!settings?.currencies || settings.currencies.length === 0) && (
                                                         <option value="EGP">EGP</option>
                                                     )}
@@ -263,7 +264,13 @@ export default function SubscriptionsPage() {
                                                 <label className="block text-sm font-bold mb-2 dark:text-white">تاريخ البداية</label>
                                                 <input
                                                     type="date"
-                                                    value={editFormData.startDate?.split('T')[0] || ''}
+                                                    value={
+                                                        editFormData.startDate instanceof Date
+                                                            ? editFormData.startDate.toISOString().split('T')[0]
+                                                            : editFormData.startDate
+                                                                ? new Date(editFormData.startDate).toISOString().split('T')[0]
+                                                                : ''
+                                                    }
                                                     onChange={(e) => setEditFormData({ ...editFormData, startDate: e.target.value })}
                                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                                                 />
