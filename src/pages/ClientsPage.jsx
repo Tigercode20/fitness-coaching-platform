@@ -7,6 +7,7 @@ import Parse from '../services/back4app'
 import EditClientModal from '../components/Modals/EditClientModal'
 import ClientDetailsModal from '../components/Modals/ClientDetailsModal'
 import { DATA_MAPPING } from '../utils/clientFields'
+import { formatDate } from '../utils/dateFormatter'
 
 export default function ClientsPage() {
     const [clients, setClients] = useState([])
@@ -356,9 +357,9 @@ export default function ClientsPage() {
                                 </button>
                             </div>
                             <div className="pt-2 mt-2 border-t border-gray-100 dark:border-gray-800 text-center flex justify-between px-2 text-xs text-gray-400 dark:text-gray-500">
-                                <span>📅 تسجيل: {client.createdAt ? new Date(client.createdAt).toISOString().split('T')[0] : 'غير متوفر'}</span>
+                                <span>📅 تسجيل: {formatDate(client.createdAt)}</span>
                                 {client.latestSaleDate && (
-                                    <span className="text-blue-500">🛒 اشتراك: {new Date(client.latestSaleDate).toISOString().split('T')[0]}</span>
+                                    <span className="text-blue-500">🛒 اشتراك: {formatDate(client.latestSaleDate)}</span>
                                 )}
                             </div>
                         </div>

@@ -407,42 +407,92 @@ export default function PendingFormsPage() {
                 {/* Main Content */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Left: Forms List */}
-                    <div className="space-y-4">
-                        {filteredForms.length === 0 ? (
-                            <div className="text-center text-gray-500 dark:text-gray-400 py-12 bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700">
-                                <p className="text-4xl mb-2">📭</p>
-                                <p>لا توجد فورمات {filter === 'pending' ? 'معلقة' : filter === 'approved' ? 'موافق عليها' : 'مرفوضة'}</p>
-                            </div>
-                        ) : (
-                            filteredForms.map(form => (
-                                <div
-                                    key={form.id}
-                                    onClick={() => { setSelectedForm(form); setEditMode(false); }}
-                                    className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:shadow-md ${selectedForm?.id === form.id
-                                        ? 'border-primary bg-primary/5 dark:bg-primary/10'
-                                        : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
-                                        }`}
-                                >
-                                    <div className="flex justify-between items-start">
-                                        <div>
-                                            <h3 className="font-bold text-lg text-gray-900 dark:text-white flex items-center gap-2">
-                                                <span>{getFormTypeIcon(form.type)}</span>
-                                                {form.type === 'client' && 'عميل جديد'}
-                                                {form.type === 'subscription' && 'اشتراك جديد'}
-                                                {form.type !== 'client' && form.type !== 'subscription' && 'طلب جديد'}
-                                            </h3>
-                                            <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                                                {form.data?.fullName || form.data?.FullName || form.data?.ClientName || 'بدون اسم'}
-                                            </p>
-                                            <p className="text-xs text-gray-500 mt-1">
-                                                {form.createdAt?.toDate ? new Date(form.createdAt.toDate()).toLocaleString('ar-EG') : 'N/A'}
-                                            </p>
+                    <div className="space-y-8">
+                        {/* 1. Registration Forms */}
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                                📋 فورمات التسجيل المعلقة
+                                <span className="text-sm bg-blue-100 text-blue-800 px-2 py-1 rounded-full">
+                                    {filteredForms.filter(f => f.type !== 'update').length}
+                                </span>
+                            </h2>
+                            {filteredForms.filter(f => f.type !== 'update').length === 0 ? (
+                                <p className="text-gray-500 italic text-center py-4 bg-gray-100 dark:bg-gray-800 rounded-lg">لا توجد فورمات تسجيل</p>
+                            ) : (
+                                <div className="space-y-3">
+                                    {filteredForms.filter(f => f.type !== 'update').map(form => (
+                                        <div
+                                            key={form.id}
+                                            onClick={() => { setSelectedForm(form); setEditMode(false); }}
+                                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:shadow-md ${selectedForm?.id === form.id
+                                                ? 'border-primary bg-primary/5 dark:bg-primary/10'
+                                                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
+                                                }`}
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h3 className="font-bold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                                                        <span>{getFormTypeIcon(form.type)}</span>
+                                                        {form.type === 'client' && 'عميل جديد'}
+                                                        {form.type === 'subscription' && 'اشتراك جديد'}
+                                                        {form.type !== 'client' && form.type !== 'subscription' && 'طلب جديد'}
+                                                    </h3>
+                                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                        {form.data?.fullName || form.data?.FullName || form.data?.ClientName || 'بدون اسم'}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 mt-1">
+                                                        {form.createdAt?.toDate ? new Date(form.createdAt.toDate()).toLocaleString('ar-EG') : 'N/A'}
+                                                    </p>
+                                                </div>
+                                                {getStatusBadge(form.status)}
+                                            </div>
                                         </div>
-                                        {getStatusBadge(form.status)}
-                                    </div>
+                                    ))}
                                 </div>
-                            ))
-                        )}
+                            )}
+                        </div>
+
+                        {/* 2. Update Forms */}
+                        <div>
+                            <h2 className="text-xl font-bold text-gray-800 dark:text-gray-200 mb-4 flex items-center gap-2">
+                                📋 فورمات التحديث المعلقة
+                                <span className="text-sm bg-purple-100 text-purple-800 px-2 py-1 rounded-full">
+                                    {filteredForms.filter(f => f.type === 'update').length}
+                                </span>
+                            </h2>
+                            {filteredForms.filter(f => f.type === 'update').length === 0 ? (
+                                <p className="text-gray-500 italic text-center py-4 bg-gray-100 dark:bg-gray-800 rounded-lg">لا توجد فورمات تحديث</p>
+                            ) : (
+                                <div className="space-y-3">
+                                    {filteredForms.filter(f => f.type === 'update').map(form => (
+                                        <div
+                                            key={form.id}
+                                            onClick={() => { setSelectedForm(form); setEditMode(false); }}
+                                            className={`p-4 rounded-xl border-2 cursor-pointer transition-all hover:shadow-md ${selectedForm?.id === form.id
+                                                ? 'border-purple-500 bg-purple-50 dark:bg-purple-900/10'
+                                                : 'border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800'
+                                                }`}
+                                        >
+                                            <div className="flex justify-between items-start">
+                                                <div>
+                                                    <h3 className="font-bold text-lg text-gray-900 dark:text-white flex items-center gap-2">
+                                                        <span>🔄</span>
+                                                        تحديث بيانات
+                                                    </h3>
+                                                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                                                        {form.data?.clientName || form.data?.fullName || 'بدون اسم'}
+                                                    </p>
+                                                    <p className="text-xs text-gray-500 mt-1">
+                                                        {form.createdAt?.toDate ? new Date(form.createdAt.toDate()).toLocaleString('ar-EG') : 'N/A'}
+                                                    </p>
+                                                </div>
+                                                {getStatusBadge(form.status)}
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
 
                     {/* Right: Preview & Actions */}

@@ -1,6 +1,23 @@
-import { FaExternalLinkAlt } from 'react-icons/fa'
+import { useState, useEffect } from 'react'
+import { FaExternalLinkAlt, FaHistory, FaChevronDown, FaChevronUp } from 'react-icons/fa'
+import { getApprovedFormsByClient } from '../../services/pendingFormService'
+import FormPreview from '../FormPreview'
 
 export default function ClientDetailsModal({ client, isOpen, onClose }) {
+    const [history, setHistory] = useState([]);
+    const [expandedHistory, setExpandedHistory] = useState(null);
+
+    useEffect(() => {
+        if (isOpen && client && (client.ClientCode || client.code)) {
+            const fetchHistory = async () => {
+                const code = client.ClientCode || client.code;
+                const forms = await getApprovedFormsByClient(code);
+                setHistory(forms);
+            };
+            fetchHistory();
+        }
+    }, [isOpen, client]);
+
     if (!isOpen || !client) return null
 
     return (
@@ -122,6 +139,41 @@ export default function ClientDetailsModal({ client, isOpen, onClose }) {
                             <FileLink label="ملف الأشعة" url={client.files?.xray || client.XrayFile} />
                         </div>
                     </section>
+
+                    {/* سجل التحديثات */}
+                    {history.length > 0 && (
+                        <section className="md:col-span-2 mt-4 pt-4 border-t dark:border-gray-800">
+                            <h3 className="text-lg font-bold text-purple-600 dark:text-purple-400 mb-4 flex items-center gap-2">
+                                <FaHistory /> سجل التحديثات السابقة
+                            </h3>
+                            <div className="space-y-3">
+                                {history.map((form) => (
+                                    <div key={form.id} className="border dark:border-gray-700 rounded-lg overflow-hidden">
+                                        <button
+                                            onClick={() => setExpandedHistory(expandedHistory === form.id ? null : form.id)}
+                                            className="w-full flex items-center justify-between p-4 bg-gray-50 hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 transition"
+                                        >
+                                            <div className="flex items-center gap-4">
+                                                <span className="font-bold text-gray-800 dark:text-white">
+                                                    📄 فورم تحديث
+                                                </span>
+                                                <span className="text-sm text-gray-500 dark:text-gray-400">
+                                                    {new Date(form.submittedAt || form.createdAt).toLocaleDateString('ar-EG')}
+                                                </span>
+                                            </div>
+                                            {expandedHistory === form.id ? <FaChevronUp /> : <FaChevronDown />}
+                                        </button>
+
+                                        {expandedHistory === form.id && (
+                                            <div className="p-4 bg-white dark:bg-gray-900 border-t dark:border-gray-700">
+                                                <FormPreview form={{ data: form }} />
+                                            </div>
+                                        )}
+                                    </div>
+                                ))}
+                            </div>
+                        </section>
+                    )}
                 </div>
 
                 <div className="p-6 border-t dark:border-gray-800 flex justify-end">

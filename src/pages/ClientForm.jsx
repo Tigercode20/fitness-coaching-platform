@@ -1,14 +1,24 @@
+﻿
 // ============================================
 // src/pages/ClientForm.jsx
 // فورم استقبال عميل جديد (شامل - 50 حقل)
 // ============================================
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useSearchParams } from 'react-router-dom'
+import ClientUpdateForm from './ClientUpdateForm'
 import ThemeToggle from '../components/Common/ThemeToggle'
 import { savePendingForm } from '../services/pendingFormService'
 import Parse from '../services/back4app'
 
 export default function ClientForm() {
+    const [searchParams] = useSearchParams()
+    const formType = searchParams.get('type')
+
+    if (formType === 'update') {
+        return <ClientUpdateForm />
+    }
+
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState({
         // معلومات شخصية
@@ -100,20 +110,20 @@ export default function ClientForm() {
                 const extension = filename.split('.').pop();
                 const baseName = filename.substring(0, filename.lastIndexOf('.'));
                 const safeBaseName = baseName.replace(/[^a-zA-Z0-9]/g, '_'); // Replace non-alphanumeric with _
-                return `${safeBaseName}.${extension}`;
+                return `${safeBaseName}.${extension} `;
             };
 
             const safeName = sanitizeFilename(file.name);
-            const name = `${Date.now()}_${imageType}_${safeName}`;
+            const name = `${Date.now()}_${imageType}_${safeName} `;
             const parseFile = new Parse.File(name, file);
 
             const savedFile = await parseFile.save();
             const downloadURL = savedFile.url();
 
-            console.log(`✅ تم رفع الملف:`, downloadURL)
+            console.log(`✅ تم رفع الملف: `, downloadURL)
 
             // تحديث الـ state
-            const fieldName = `${imageType}ImageUrl`
+            const fieldName = `${imageType} ImageUrl`
             setFormData(prev => ({
                 ...prev,
                 [fieldName]: downloadURL
@@ -121,8 +131,8 @@ export default function ClientForm() {
 
             alert(`✅ تم رفع صورة ${imageType} بنجاح!`)
         } catch (error) {
-            console.error(`❌ خطأ في رفع ${imageType}:`, error)
-            alert(`❌ خطأ في رفع الصورة: ${error.message}`)
+            console.error(`❌ خطأ في رفع ${imageType}: `, error)
+            alert(`❌ خطأ في رفع الصورة: ${error.message} `)
         } finally {
             setLoading(false)
         }
@@ -148,17 +158,17 @@ export default function ClientForm() {
                 const extension = filename.split('.').pop();
                 const baseName = filename.substring(0, filename.lastIndexOf('.'));
                 const safeBaseName = baseName.replace(/[^a-zA-Z0-9]/g, '_'); // Replace non-alphanumeric with _
-                return `${safeBaseName}.${extension}`;
+                return `${safeBaseName}.${extension} `;
             };
 
             const safeName = sanitizeFilename(file.name);
-            const name = `${Date.now()}_${fileType}_${safeName}`;
+            const name = `${Date.now()}_${fileType}_${safeName} `;
             const parseFile = new Parse.File(name, file);
 
             const savedFile = await parseFile.save();
             const downloadURL = savedFile.url();
 
-            const fieldName = `${fileType}FileUrl`
+            const fieldName = `${fileType} FileUrl`
             setFormData(prev => ({
                 ...prev,
                 [fieldName]: downloadURL
@@ -166,8 +176,8 @@ export default function ClientForm() {
 
             alert(`✅ تم رفع الملف بنجاح!`)
         } catch (error) {
-            console.error(`❌ خطأ في رفع ملف ${fileType}:`, error)
-            alert(`❌ خطأ: ${error.message}`)
+            console.error(`❌ خطأ في رفع ملف ${fileType}: `, error)
+            alert(`❌ خطأ: ${error.message} `)
         } finally {
             setLoading(false)
         }
@@ -292,7 +302,7 @@ export default function ClientForm() {
             window.scrollTo(0, 0)
         } catch (error) {
             console.error('❌ خطأ:', error)
-            alert(`❌ خطأ: ${error.message}`)
+            alert(`❌ خطأ: ${error.message} `)
         } finally {
             setLoading(false)
         }
@@ -416,7 +426,7 @@ export default function ClientForm() {
                         {/* صورة شخصية */}
                         <div className="md:col-span-2 mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
                             <label className="block font-bold mb-2 text-blue-600 dark:text-blue-400">
-                                📸 صورة شخصية (اختياري)
+                                📷 صورة شخصية (اختياري)
                                 <span className="block text-xs font-normal text-gray-500 dark:text-gray-400 mt-1">
                                     اضافه صوره شخصية لو حابب - Add a personal photo if you like
                                 </span>
@@ -518,7 +528,7 @@ export default function ClientForm() {
 
                 {/* ========== الصور ========== */}
                 <section className="bg-purple-50 dark:bg-gray-800/40 p-6 rounded-xl border border-purple-100 dark:border-gray-700 backdrop-blur-sm">
-                    <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-purple-400">📸 الصور (أمامية - جانبية - خلفية)</h2>
+                    <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-purple-400">📷 الصور (أمامية - جانبية - خلفية)</h2>
 
                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-gray-700 dark:text-gray-300">
                         {/* صورة أمامية */}
@@ -591,7 +601,7 @@ export default function ClientForm() {
 
                 {/* ========== الصحة الطبية ========== */}
                 <section className="bg-red-50 dark:bg-gray-800/40 p-6 rounded-xl border border-red-100 dark:border-gray-700 backdrop-blur-sm">
-                    <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-red-400">⚕️ الصحة الطبية</h2>
+                    <h2 className="text-2xl font-bold mb-4 text-gray-800 dark:text-red-400">🩺 الصحة الطبية</h2>
 
                     <div className="space-y-4 text-gray-700 dark:text-gray-300">
                         <div>

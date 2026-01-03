@@ -141,6 +141,8 @@ export default function SalesPage() {
         try {
             await createSale({
                 ...formData,
+                duration: parseInt(formData.duration) * 30,
+                bonusDuration: parseInt(formData.bonusDuration || 0) * 30,
                 clientId: selectedClient?.id,
                 timestamp: new Date().toISOString()
             })

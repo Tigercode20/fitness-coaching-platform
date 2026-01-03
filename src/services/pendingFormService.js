@@ -162,3 +162,34 @@ export const getPendingFormsCount = async () => {
         return 0;
     }
 };
+
+// 8️⃣ Get approved forms for a specific client (History)
+// 8️⃣ Get approved forms for a specific client (History)
+export const getApprovedFormsByClient = async (clientCode) => {
+    try {
+        const query = new Parse.Query(PENDING_FORM_CLASS);
+        query.equalTo('status', 'approved');
+        query.notEqualTo('type', 'client'); // Exclude registration forms
+        query.descending('createdAt');
+        query.limit(1000); // Fetch a reasonable amount to filter client-side
+
+        const results = await query.find();
+
+        // Filter client-side because nested JSON queries can be unreliable without indexing
+        return results
+            .map(doc => ({
+                id: doc.id,
+                ...doc.attributes,
+                ...doc.get('data'), // specific fields might overwrite attributes
+                submittedAt: doc.get('submittedAt'),
+                approvedAt: doc.get('approvedAt'),
+                // Ensure we handle both casing
+                targetClientCode: doc.get('data')?.clientCode || doc.get('data')?.ClientCode
+            }))
+            .filter(form => String(form.targetClientCode) === String(clientCode));
+
+    } catch (error) {
+        console.error('❌ Error fetching client history:', error);
+        return [];
+    }
+};

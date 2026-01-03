@@ -4,6 +4,7 @@ import { getAllClients } from '../services/clientService'
 import { getSettings } from '../services/settingsService'
 import { toast } from 'react-toastify'
 import Parse from '../services/back4app'
+import { formatDate } from '../utils/dateFormatter'
 
 export default function SubscriptionsPage() {
     const [clients, setClients] = useState([])
@@ -57,8 +58,8 @@ export default function SubscriptionsPage() {
             receiveAccount: subscription.get('receiveAccount'),
             package: subscription.get('package'),
             startDate: subscription.get('startDate'),
-            duration: subscription.get('duration'),
-            bonusDuration: subscription.get('bonusDuration'),
+            duration: subscription.get('duration') ? subscription.get('duration') / 30 : 1,
+            bonusDuration: subscription.get('bonusDuration') ? subscription.get('bonusDuration') / 30 : 0,
             receiveTrainingPlan: subscription.get('receiveTrainingPlan'),
             notes: subscription.get('notes')
         })
@@ -70,6 +71,8 @@ export default function SubscriptionsPage() {
         try {
             await updateSale(subId, {
                 ...editFormData,
+                duration: parseInt(editFormData.duration) * 30,
+                bonusDuration: parseInt(editFormData.bonusDuration || 0) * 30,
                 startDate: new Date(editFormData.startDate)
             })
 
@@ -114,9 +117,9 @@ export default function SubscriptionsPage() {
         const duration = parseInt(sub.get('duration') || 0);
         const bonus = parseInt(sub.get('bonusDuration') || 0);
 
-        // حساب تاريخ الانتهاء
+        // حساب تاريخ الانتهاء (Duration stored as days)
         const end = new Date(start);
-        end.setMonth(end.getMonth() + duration + bonus);
+        end.setDate(end.getDate() + duration + bonus);
 
         const now = new Date();
         const diffTime = end - now;
@@ -354,24 +357,23 @@ export default function SubscriptionsPage() {
 
                                                         <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
                                                             <p className="text-gray-600 dark:text-gray-400 text-sm">⌛ المدة</p>
-                                                            <p className="text-gray-900 dark:text-white font-bold text-lg">{sub.get('duration')} شهور</p>
+                                                            <p className="text-gray-900 dark:text-white font-bold text-lg">{(sub.get('duration') || 0) / 30} شهور</p>
                                                         </div>
 
                                                         <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
                                                             <p className="text-gray-600 dark:text-gray-400 text-sm">➕ إضافي</p>
-                                                            <p className="text-gray-900 dark:text-white font-bold text-lg">{sub.get('bonusDuration')} شهور</p>
+                                                            <p className="text-gray-900 dark:text-white font-bold text-lg">{(sub.get('bonusDuration') || 0) / 30} شهور</p>
                                                         </div>
 
                                                         <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
                                                             <p className="text-gray-600 dark:text-gray-400 text-sm">📅 تاريخ البداية</p>
-                                                            <p className="text-gray-900 dark:text-white font-bold">{sub.get('startDate') ? new Date(sub.get('startDate')).toISOString().split('T')[0] : '-'}</p>
+                                                            <p className="text-gray-900 dark:text-white font-bold">{formatDate(sub.get('startDate'))}</p>
                                                         </div>
 
                                                         <div className="bg-gray-50 dark:bg-gray-700/30 p-4 rounded-lg">
                                                             <p className="text-gray-600 dark:text-gray-400 text-sm">⏰ تم الاشتراك</p>
                                                             <span className="text-gray-900 dark:text-white font-bold text-sm">
-                                                                {sub.get('timestamp') ? new Date(sub.get('timestamp')).toISOString().split('T')[0] :
-                                                                    sub.createdAt ? new Date(sub.createdAt).toISOString().split('T')[0] : '-'}
+                                                                {formatDate(sub.get('timestamp') || sub.createdAt)}
                                                             </span>
                                                         </div>
 

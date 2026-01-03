@@ -20,9 +20,11 @@ export default function FormPreview({ form }) {
 
         return (
             <div className="space-y-3 max-h-[600px] overflow-y-auto pr-2 custom-scrollbar">
-                {entries.map(([key, value]) => (
-                    <Item key={key} label={translateKey(key)} value={value} fieldKey={key} />
-                ))}
+                {entries.map(([key, value]) => {
+                    // Hide system fields
+                    if (['clientPointer', 'objectId', 'updatedAt', 'type'].includes(key)) return null;
+                    return <Item key={key} label={translateKey(key)} value={value} fieldKey={key} />
+                })}
             </div>
         );
     };
@@ -144,7 +146,27 @@ export default function FormPreview({ form }) {
             status: 'الحالة',
             Status: 'الحالة',
             createdAt: 'تاريخ الإنشاء',
-            approvedAt: 'تاريخ الموافقة'
+            approvedAt: 'تاريخ الموافقة',
+
+            // == Update Form Keys ==
+            clientName: 'اسم العميل',
+            clientCode: 'كود العميل',
+            renewTraining: 'تجديد التدريب',
+            renewNutrition: 'تجديد التغذية',
+            currentWeight: 'الوزن الحالي',
+            workoutDays: 'أيام التمرين',
+            workoutLocation: 'مكان التمرين',
+            weakPoints: 'نقاط الضعف',
+            frontImage: 'صورة أمامية',
+            sideImage: 'صورة جانبية',
+            backImage: 'صورة خلفية',
+            dietAdherence: 'الالتزام بالدايت',
+            isHungry: 'هل تشعر بالجوع؟',
+            dietNotes: 'ملاحظات وتغييرات',
+            changeFoodTypes: 'تغيير أصناف الطعام',
+            scalePhoto: 'صورة الميزان',
+            physiquePhoto: 'صورة الجسم',
+            activityLevel: 'مستوى النشاط'
         };
         return translations[key] || key;
     };
