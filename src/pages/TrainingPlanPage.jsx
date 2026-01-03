@@ -24,7 +24,8 @@ export default function TrainingPlanPage() {
 
     // Plan State
     const [planType, setPlanType] = useState('training') // 'training' or 'nutrition'
-    const [planContent, setPlanContent] = useState('')
+    const [trainingContent, setTrainingContent] = useState('')
+    const [nutritionContent, setNutritionContent] = useState('')
     const [duration, setDuration] = useState(30)
     const [startDate, setStartDate] = useState(new Date().toISOString().split('T')[0])
 
@@ -187,7 +188,8 @@ ${client.additionalNotes ? '- ملاحظات إضافية: ' + client.additional
 
     const handleSave = async () => {
         if (!client) return
-        if (!planContent.trim()) {
+        const contentToSave = planType === 'training' ? trainingContent : nutritionContent
+        if (!contentToSave.trim()) {
             toast.warning('يرجى كتابة محتوى الخطة')
             return
         }
@@ -206,7 +208,7 @@ ${client.additionalNotes ? '- ملاحظات إضافية: ' + client.additional
             plan.set('clientCode', client.ClientCode)
             plan.set('clientName', client.FullName)
             plan.set('type', planType)
-            plan.set('content', planContent)
+            plan.set('content', contentToSave)
             plan.set('duration', parseInt(duration))
             plan.set('startDate', new Date(startDate))
             plan.set('status', 'active')
@@ -388,8 +390,8 @@ ${client.additionalNotes ? '- ملاحظات إضافية: ' + client.additional
                                         <span className="text-xs text-gray-400">يدعم اللصق المباشر من ChatGPT</span>
                                     </div>
                                     <textarea
-                                        value={planContent}
-                                        onChange={(e) => setPlanContent(e.target.value)}
+                                        value={planType === 'training' ? trainingContent : nutritionContent}
+                                        onChange={(e) => planType === 'training' ? setTrainingContent(e.target.value) : setNutritionContent(e.target.value)}
                                         placeholder={`اكتب او الصق تفاصيل ${planType === 'training' ? 'التمرين' : 'الدايت'} هنا...`}
                                         className="w-full h-[400px] p-5 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl focus:ring-2 focus:ring-blue-500 dark:text-white font-mono text-base leading-relaxed resize-none shadow-inner"
                                     ></textarea>
