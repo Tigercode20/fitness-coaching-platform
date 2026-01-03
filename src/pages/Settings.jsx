@@ -732,132 +732,171 @@ export default function Settings() {
                         )}
 
                         {/* العملات */}
-                        {activeTab === 'currencies' && (
-                            <div className="rounded-lg shadow-lg p-8 bg-white dark:bg-gray-800">
-                                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-                                    💱 العملات وأسعار الصرف
-                                </h2>
-                                <p className="mb-4 text-sm text-gray-500">
-                                    حدد سعر الصرف مقابل العملة الرئيسية ({settings.primaryCurrency}).
-                                    استخدم زر التحديث 🔄 لجلب السعر الحالي من السوق، أو القلم ✏️ للتعديل اليدوي.
-                                </p>
+                        {activeTab === 'currencies' && (() => {
+                            // Logic to calculate displayed currencies based on pending Primary Currency change
+                            let displayedCurrencies = settings.currencies || []
+                            const isPrimaryChanged = formData.primaryCurrency !== settings.primaryCurrency
 
-                                {/* إضافة */}
-                                <div className="mb-8 p-6 rounded-lg border-2 border-dashed bg-gray-50 border-gray-300 dark:bg-gray-700 dark:border-gray-600">
-                                    <div className="flex gap-3">
-                                        <select
-                                            value={newCurrency.code}
-                                            onChange={(e) => {
-                                                setNewCurrency({ ...newCurrency, code: e.target.value })
-                                                // Auto fetch rate when selecting currency
-                                                if (e.target.value) {
-                                                    fetchLiveRate(settings.primaryCurrency, e.target.value)
-                                                        .then(rate => {
-                                                            if (rate) setNewCurrency(prev => ({ ...prev, code: e.target.value, rate: rate }))
-                                                        })
-                                                }
-                                            }}
-                                            className="w-1/3 px-4 py-2 rounded-lg border-2 bg-white border-gray-300 text-gray-900 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
-                                        >
-                                            {AVAILABLE_CURRENCIES
-                                                .filter(c => !settings.currencies.some(sc => sc.code === c.code))
-                                                .map(c => (
-                                                    <option key={c.code} value={c.code}>{c.code} - {c.name}</option>
-                                                ))
-                                            }
-                                        </select>
-                                        <input
-                                            type="number"
-                                            value={newCurrency.rate}
-                                            onChange={(e) => setNewCurrency({ ...newCurrency, rate: e.target.value })}
-                                            placeholder="السعر (Auto if empty)"
-                                            className="w-1/3 px-4 py-2 rounded-lg border-2 bg-white border-gray-300 text-gray-900 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
-                                        />
-                                        <button
-                                            onClick={handleAddCurrency}
-                                            disabled={loading}
-                                            className="w-1/3 px-6 py-2 bg-green-500 text-white rounded-lg font-bold hover:bg-green-600"
-                                        >
-                                            ✅ إضافة
-                                        </button>
-                                    </div>
-                                </div>
+                            if (isPrimaryChanged) {
+                                const newPrimaryCode = formData.primaryCurrency
+                                const oldPrimaryCode = settings.primaryCurrency
 
-                                {/* القائمة */}
-                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                    {settings.currencies.map(currency => (
-                                        <div
-                                            key={currency.code}
-                                            className={`flex justify-between items-center p-3 rounded-lg border-l-4 ${currency.isManual ? 'border-orange-500' : 'border-cyan-500'} bg-gray-50 dark:bg-gray-700`}
-                                        >
-                                            <div className="flex items-center gap-4 flex-1">
-                                                <span className="font-bold text-lg">💱 {currency.code}</span>
+                                // Find rate of New Primary relative to Old Primary
+                                const newPrimaryObj = settings.currencies.find(c => c.code === newPrimaryCode)
+                                const conversionFactor = newPrimaryObj ? parseFloat(newPrimaryObj.rate) : 1
 
-                                                {editingCurrency === currency.code ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <input
-                                                            type="number"
-                                                            defaultValue={currency.rate}
-                                                            id={`edit-rate-${currency.code}`}
-                                                            className="w-24 px-2 py-1 rounded border text-black"
-                                                        />
-                                                        <button
-                                                            onClick={() => {
-                                                                const val = document.getElementById(`edit-rate-${currency.code}`).value
-                                                                handleSaveEdit(currency.code, val)
-                                                            }}
-                                                            className="text-green-500 hover:text-green-700"
-                                                        >✅</button>
-                                                        <button
-                                                            onClick={() => setEditingCurrency(null)}
-                                                            className="text-red-500 hover:text-red-700"
-                                                        >❌</button>
-                                                    </div>
-                                                ) : (
-                                                    <span className="text-sm bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded flex items-center gap-2">
-                                                        = {currency.rate} {settings.primaryCurrency}
-                                                        {currency.isManual && <span className="text-xs text-orange-500" title="Manual Rate">🖐️</span>}
-                                                    </span>
-                                                )}
-                                            </div>
+                                // Recalculate all for preview
+                                displayedCurrencies = settings.currencies.map(c => {
+                                    if (c.code === newPrimaryCode) {
+                                        return { ...c, rate: 1 }
+                                    }
+                                    // New Rate = Old Rate / Conversion Factor
+                                    const estimatedRate = conversionFactor > 0 ? (c.rate / conversionFactor) : 0
+                                    return {
+                                        ...c,
+                                        rate: parseFloat(estimatedRate.toFixed(4))
+                                    }
+                                })
+                            }
 
-                                            <div className="flex items-center gap-2">
-                                                {/* Edit Button */}
-                                                {!editingCurrency && (
-                                                    <button
-                                                        onClick={() => setEditingCurrency(currency.code)}
-                                                        disabled={loading}
-                                                        className="p-2 text-blue-500 hover:text-blue-700 rounded-full hover:bg-blue-100 dark:hover:bg-gray-600 transition"
-                                                        title="تعديل يدوي"
-                                                    >
-                                                        ✏️
-                                                    </button>
-                                                )}
+                            return (
+                                <div className="rounded-lg shadow-lg p-8 bg-white dark:bg-gray-800">
+                                    <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
+                                        💱 العملات وأسعار الصرف
+                                    </h2>
 
-                                                {/* Refresh Button */}
-                                                <button
-                                                    onClick={() => handleRefreshRate(currency)}
-                                                    disabled={loading}
-                                                    className="p-2 text-green-500 hover:text-green-700 rounded-full hover:bg-green-100 dark:hover:bg-gray-600 transition"
-                                                    title="تحديث من السوق"
+                                    {isPrimaryChanged && (
+                                        <div className="mb-4 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700">
+                                            ⚠️ <b>تنبيه:</b> الأسعار المعروضة أدناه هي <b>تقديرية</b> بناءً على اختيارك الجديد للعملة الرئيسية ({formData.primaryCurrency}).
+                                            يرجى حفظ التغييرات في تبويب "البيانات العامة" لاعتمادها.
+                                        </div>
+                                    )}
+
+                                    <p className="mb-4 text-sm text-gray-500">
+                                        حدد سعر الصرف مقابل العملة الرئيسية المختارة ({formData.primaryCurrency}).
+                                        {!isPrimaryChanged && " استخدم زر التحديث 🔄 لجلب السعر الحالي من السوق، أو القلم ✏️ للتعديل اليدوي."}
+                                    </p>
+
+                                    {/* إضافة */}
+                                    {!isPrimaryChanged && (
+                                        <div className="mb-8 p-6 rounded-lg border-2 border-dashed bg-gray-50 border-gray-300 dark:bg-gray-700 dark:border-gray-600">
+                                            <div className="flex gap-3">
+                                                <select
+                                                    value={newCurrency.code}
+                                                    onChange={(e) => {
+                                                        setNewCurrency({ ...newCurrency, code: e.target.value })
+                                                        if (e.target.value) {
+                                                            fetchLiveRate(settings.primaryCurrency, e.target.value)
+                                                                .then(rate => {
+                                                                    if (rate) setNewCurrency(prev => ({ ...prev, code: e.target.value, rate: rate }))
+                                                                })
+                                                        }
+                                                    }}
+                                                    className="w-1/3 px-4 py-2 rounded-lg border-2 bg-white border-gray-300 text-gray-900 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
                                                 >
-                                                    🔄
-                                                </button>
-
-                                                {/* Delete Button */}
+                                                    {AVAILABLE_CURRENCIES
+                                                        .filter(c => !settings.currencies.some(sc => sc.code === c.code))
+                                                        .map(c => (
+                                                            <option key={c.code} value={c.code}>{c.code} - {c.name}</option>
+                                                        ))
+                                                    }
+                                                </select>
+                                                <input
+                                                    type="number"
+                                                    value={newCurrency.rate}
+                                                    onChange={(e) => setNewCurrency({ ...newCurrency, rate: e.target.value })}
+                                                    placeholder="السعر (Auto if empty)"
+                                                    className="w-1/3 px-4 py-2 rounded-lg border-2 bg-white border-gray-300 text-gray-900 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                                                />
                                                 <button
-                                                    onClick={() => handleDeleteCurrency(currency.code)}
+                                                    onClick={handleAddCurrency}
                                                     disabled={loading}
-                                                    className="p-2 text-red-500 hover:text-red-700 rounded-full hover:bg-red-100 dark:hover:bg-gray-600 transition"
+                                                    className="w-1/3 px-6 py-2 bg-green-500 text-white rounded-lg font-bold hover:bg-green-600"
                                                 >
-                                                    🗑️
+                                                    ✅ إضافة
                                                 </button>
                                             </div>
                                         </div>
-                                    ))}
+                                    )}
+
+                                    {/* القائمة */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                        {displayedCurrencies.map(currency => (
+                                            <div
+                                                key={currency.code}
+                                                className={`flex justify-between items-center p-3 rounded-lg border-l-4 ${currency.isManual ? 'border-orange-500' : 'border-cyan-500'} bg-gray-50 dark:bg-gray-700`}
+                                            >
+                                                <div className="flex items-center gap-4 flex-1">
+                                                    <span className="font-bold text-lg">💱 {currency.code}</span>
+
+                                                    {(!isPrimaryChanged && editingCurrency === currency.code) ? (
+                                                        <div className="flex items-center gap-2">
+                                                            <input
+                                                                type="number"
+                                                                defaultValue={currency.rate}
+                                                                id={`edit-rate-${currency.code}`}
+                                                                className="w-24 px-2 py-1 rounded border text-black"
+                                                            />
+                                                            <button
+                                                                onClick={() => {
+                                                                    const val = document.getElementById(`edit-rate-${currency.code}`).value
+                                                                    handleSaveEdit(currency.code, val)
+                                                                }}
+                                                                className="text-green-500 hover:text-green-700"
+                                                            >✅</button>
+                                                            <button
+                                                                onClick={() => setEditingCurrency(null)}
+                                                                className="text-red-500 hover:text-red-700"
+                                                            >❌</button>
+                                                        </div>
+                                                    ) : (
+                                                        <span className="text-sm bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded flex items-center gap-2">
+                                                            = {currency.rate} {formData.primaryCurrency}
+                                                            {currency.isManual && <span className="text-xs text-orange-500" title="Manual Rate">🖐️</span>}
+                                                        </span>
+                                                    )}
+                                                </div>
+
+                                                {!isPrimaryChanged && (
+                                                    <div className="flex items-center gap-2">
+                                                        {/* Edit Button */}
+                                                        {!editingCurrency && (
+                                                            <button
+                                                                onClick={() => setEditingCurrency(currency.code)}
+                                                                disabled={loading}
+                                                                className="p-2 text-blue-500 hover:text-blue-700 rounded-full hover:bg-blue-100 dark:hover:bg-gray-600 transition"
+                                                                title="تعديل يدوي"
+                                                            >
+                                                                ✏️
+                                                            </button>
+                                                        )}
+
+                                                        {/* Refresh Button */}
+                                                        <button
+                                                            onClick={() => handleRefreshRate(currency)}
+                                                            disabled={loading}
+                                                            className="p-2 text-green-500 hover:text-green-700 rounded-full hover:bg-green-100 dark:hover:bg-gray-600 transition"
+                                                            title="تحديث من السوق"
+                                                        >
+                                                            🔄
+                                                        </button>
+
+                                                        {/* Delete Button */}
+                                                        <button
+                                                            onClick={() => handleDeleteCurrency(currency.code)}
+                                                            disabled={loading}
+                                                            className="p-2 text-red-500 hover:text-red-700 rounded-full hover:bg-red-100 dark:hover:bg-gray-600 transition"
+                                                        >
+                                                            🗑️
+                                                        </button>
+                                                    </div>
+                                                )}
+                                            </div>
+                                        ))}
+                                    </div>
                                 </div>
-                            </div>
-                        )}
+                            )
+                        })()}
                     </div>
                 </div>
             </div>
