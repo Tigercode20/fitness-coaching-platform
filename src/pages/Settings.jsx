@@ -171,17 +171,21 @@ export default function Settings() {
             let updatedCurrencies = [...settings.currencies]
 
             if (oldPrimary !== newPrimary) {
-                // نحتاج لإعادة حساب أسعار الصرف بالنسبة للعملة الجديدة
-                const newPrimaryObj = settings.currencies.find(c => c.code === newPrimary)
-                const conversionFactor = newPrimaryObj ? newPrimaryObj.rate : 1
-
-                updatedCurrencies = updatedCurrencies.map(c => {
-                    if (c.code === newPrimary) return { ...c, rate: 1, isManual: false }
-                    return {
-                        ...c,
-                        rate: parseFloat((c.rate / conversionFactor).toFixed(4))
+                // إعادة جلب أسعار الصرف الحية للعملة الجديدة لضمان دقة البيانات
+                // هذا يصحح أي أخطاء سابقة في قاعدة البيانات
+                const promises = settings.currencies.map(async (c) => {
+                    if (c.code === newPrimary) {
+                        return { ...c, rate: 1, isManual: false }
+                    }
+                    // جلب السعر الجديد: كم يساوي 1 من العملة (c.code) مقابل العملة الرئيسية الجديدة (newPrimary)
+                    try {
+                        const rate = await fetchLiveRate(c.code, newPrimary)
+                        return { ...c, rate: rate || 1, isManual: false } // Reset manual flag to ensure accuracy
+                    } catch (e) {
+                        return { ...c, rate: 1, isManual: false }
                     }
                 })
+                updatedCurrencies = await Promise.all(promises)
             }
 
             settingsObj.set('businessName', formData.businessName)
