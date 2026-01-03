@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react'
 import { getSalesByClient, updateSale, deleteSale } from '../services/salesService'
 import { getAllClients } from '../services/clientService'
+import { getSettings } from '../services/settingsService'
 import { toast } from 'react-toastify'
-import Parse from '../services/back4app' // Needed for Parse objects if any direct interaction, but service handles most.
+import Parse from '../services/back4app'
 
 export default function SubscriptionsPage() {
     const [clients, setClients] = useState([])
@@ -10,10 +11,21 @@ export default function SubscriptionsPage() {
     const [loading, setLoading] = useState(false)
     const [editingId, setEditingId] = useState(null)
     const [editFormData, setEditFormData] = useState(null)
+    const [settings, setSettings] = useState(null)
 
     useEffect(() => {
         loadClientsAndSubscriptions()
+        loadAppSettings()
     }, [])
+
+    const loadAppSettings = async () => {
+        try {
+            const s = await getSettings()
+            setSettings(s)
+        } catch (error) {
+            console.error('❌ خطأ في تحميل الإعدادات:', error)
+        }
+    }
 
     const loadClientsAndSubscriptions = async () => {
         try {
@@ -21,17 +33,6 @@ export default function SubscriptionsPage() {
             setClients(clientsList)
 
             // جلب جميع الاشتراكات
-            let allSubs = []
-            // Note: fetching sales for ALL clients individually might be slow if clients > 100.
-            // Better approach: getSalesBy() returns ALL sales sorted.
-            // The fix file provided:
-            /*
-            for (const client of clientsList) {
-              const subs = await getSalesByClient(client.id)
-              allSubs = [...allSubs, ...subs]
-            }
-            */
-            // My optimized approach using existing service:
             const query = new Parse.Query('Sale')
             query.descending('timestamp')
             query.limit(1000)
@@ -99,22 +100,11 @@ export default function SubscriptionsPage() {
         }
     }
 
-    // العثور على اسم العميل
+    // العثور على اسم العميل (Fallback)
     const getClientName = (clientId) => {
-        // Try by ID first, then Code if ID fails (Back4App IDs vs custom IDs)
         const client = clients.find(c => c.id === clientId || c.objectId === clientId)
-        return client ? client.FullName : 'غير معروف' // Note: clients from getAllClients have FullName (capitalized?) let's check.
+        return client ? client.FullName : 'غير معروف'
     }
-    // The provided fix uses `client.get('fullName')` but `getAllClients` returns JSON objects usually?
-    // Let's check `clientService`. `getAllClients` returns `results.map(doc => ({ id: doc.id, ...doc.attributes }))`.
-    // attributes usually have `FullName` (capitalized based on Client mapping). 
-    // Let's use `client.FullName` as it was in previous code.
-
-    // NOTE: The previous code I wrote uses `client.FullName`.
-    // The fix code uses `sub.get('clientName')` which is stored on the Sale object itself!
-    // So `getClientName` helper might be redundant if `sub.get('clientName')` is populated relative to the sale creation time.
-    // The fix code renders `{getClientName(sub.get('clientId'))}`.
-    // I'll stick to `sub.get('clientName')` if available, falling back to helper.
 
     return (
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8 transition-colors duration-300">
@@ -148,8 +138,8 @@ export default function SubscriptionsPage() {
                                                 {sub.get('amountPaid')} {sub.get('currency')}
                                             </p>
                                             <span className={`inline-block px-3 py-1 rounded-full text-sm font-semibold mt-2 ${sub.get('subscriptionType') === 'new'
-                                                    ? 'bg-green-200 text-green-800'
-                                                    : 'bg-blue-200 text-blue-800'
+                                                ? 'bg-green-200 text-green-800'
+                                                : 'bg-blue-200 text-blue-800'
                                                 }`}>
                                                 {sub.get('subscriptionType') === 'new' ? '✨ جديد' : '🔄 تجديد'}
                                             </span>
@@ -164,14 +154,30 @@ export default function SubscriptionsPage() {
                                         <div className="grid grid-cols-2 gap-4">
                                             <div>
                                                 <label className="block text-sm font-bold mb-2 dark:text-white">نوع الاشتراك</label>
-                                                <select
-                                                    value={editFormData.subscriptionType}
-                                                    onChange={(e) => setEditFormData({ ...editFormData, subscriptionType: e.target.value })}
-                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
-                                                >
-                                                    <option value="new">جديد</option>
-                                                    <option value="renewal">تجديد</option>
-                                                </select>
+                                                <div className="flex flex-col gap-2">
+                                                    {settings?.subscriptionTypes?.map(type => (
+                                                        <label key={type.id} className="flex items-center cursor-pointer dark:text-white">
+                                                            <input
+                                                                type="radio"
+                                                                name="subscriptionType"
+                                                                value={type.id}
+                                                                checked={editFormData.subscriptionType === type.id}
+                                                                onChange={(e) => setEditFormData({ ...editFormData, subscriptionType: e.target.value })}
+                                                                className="mr-2"
+                                                            />
+                                                            {type.icon} {type.name}
+                                                        </label>
+                                                    )) || (
+                                                            <select
+                                                                value={editFormData.subscriptionType}
+                                                                onChange={(e) => setEditFormData({ ...editFormData, subscriptionType: e.target.value })}
+                                                                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                                            >
+                                                                <option value="new">جديد</option>
+                                                                <option value="renewal">تجديد</option>
+                                                            </select>
+                                                        )}
+                                                </div>
                                             </div>
 
                                             <div>
@@ -186,15 +192,50 @@ export default function SubscriptionsPage() {
                                             </div>
 
                                             <div>
+                                                <label className="block text-sm font-bold mb-2 dark:text-white">العملة</label>
+                                                <select
+                                                    value={editFormData.currency}
+                                                    onChange={(e) => setEditFormData({ ...editFormData, currency: e.target.value })}
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                                >
+                                                    {settings?.currencies?.map(currency => (
+                                                        <option key={currency} value={currency}>{currency}</option>
+                                                    ))}
+                                                    {(!settings?.currencies || settings.currencies.length === 0) && (
+                                                        <option value="EGP">EGP</option>
+                                                    )}
+                                                </select>
+                                            </div>
+
+                                            <div>
+                                                <label className="block text-sm font-bold mb-2 dark:text-white">حساب الاستقبال</label>
+                                                <select
+                                                    value={editFormData.receiveAccount}
+                                                    onChange={(e) => setEditFormData({ ...editFormData, receiveAccount: e.target.value })}
+                                                    className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
+                                                >
+                                                    {settings?.receiveAccounts?.map(account => (
+                                                        <option key={account} value={account}>{account}</option>
+                                                    ))}
+                                                    {(!settings?.receiveAccounts || settings.receiveAccounts.length === 0) && (
+                                                        <option value="">N/A</option>
+                                                    )}
+                                                </select>
+                                            </div>
+
+                                            <div>
                                                 <label className="block text-sm font-bold mb-2 dark:text-white">الباقة</label>
                                                 <select
                                                     value={editFormData.package}
                                                     onChange={(e) => setEditFormData({ ...editFormData, package: e.target.value })}
                                                     className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 dark:bg-gray-800 dark:border-gray-600 dark:text-white"
                                                 >
-                                                    <option value="basic">Gold</option>
-                                                    <option value="standard">Varialiv</option>
-                                                    <option value="premium">VIP</option>
+                                                    {settings?.packages?.map(pkg => (
+                                                        <option key={pkg.id} value={pkg.id}>{pkg.name}</option>
+                                                    ))}
+                                                    {(!settings?.packages || settings.packages.length === 0) && (
+                                                        <option value="basic">Gold</option>
+                                                    )}
                                                 </select>
                                             </div>
 

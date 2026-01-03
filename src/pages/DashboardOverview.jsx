@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { getAllClients } from '../services/clientService'
 import { getSalesBy } from '../services/salesService'
+import { getBusinessInfo } from '../services/settingsService'
 import { Link } from 'react-router-dom'
 
 export default function DashboardOverview() {
@@ -12,10 +13,21 @@ export default function DashboardOverview() {
         totalRevenue: 0,
         avgDuration: 0
     })
+    const [businessInfo, setBusinessInfo] = useState({ name: 'لوحة التحكم الرئيسية', logo: '' })
 
     useEffect(() => {
         loadDashboardData()
+        loadBusinessInfo()
     }, [])
+
+    const loadBusinessInfo = async () => {
+        try {
+            const info = await getBusinessInfo()
+            setBusinessInfo(info)
+        } catch (error) {
+            console.error('❌ خطأ في تحميل معلومات الشركة:', error)
+        }
+    }
 
     const loadDashboardData = async () => {
         try {
@@ -53,9 +65,16 @@ export default function DashboardOverview() {
         <div className="min-h-screen bg-gray-50 dark:bg-gray-900 p-8 transition-colors duration-300">
             <div className="max-w-7xl mx-auto">
                 {/* الرأس */}
-                <div className="mb-8">
-                    <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">🏠 لوحة التحكم الرئيسية</h1>
-                    <p className="text-gray-600 dark:text-gray-400">إدارة شاملة لعملائك واشتراكاتك ومبيعاتك</p>
+                <div className="mb-8 flex items-center gap-4">
+                    {businessInfo.logo && (
+                        <img src={businessInfo.logo} alt="Logo" className="h-16 w-16 rounded-lg object-cover shadow-sm bg-white" />
+                    )}
+                    <div>
+                        <h1 className="text-4xl font-bold text-gray-900 dark:text-white mb-2">
+                            {businessInfo.name ? `🏠 ${businessInfo.name}` : '🏠 لوحة التحكم الرئيسية'}
+                        </h1>
+                        <p className="text-gray-600 dark:text-gray-400">إدارة شاملة لعملائك واشتراكاتك ومبيعاتك</p>
+                    </div>
                 </div>
 
                 {/* البطاقات الإحصائية */}
@@ -180,8 +199,8 @@ export default function DashboardOverview() {
                                                 <p className="text-sm text-gray-600 dark:text-gray-300">📦 {sale.get('package')}</p>
                                             </div>
                                             <span className={`text-xs px-3 py-1 rounded-full font-semibold ${sale.get('subscriptionType') === 'new'
-                                                    ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
-                                                    : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
+                                                ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300'
+                                                : 'bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300'
                                                 }`}>
                                                 {sale.get('subscriptionType') === 'new' ? '✨ جديد' : '🔄 تجديد'}
                                             </span>

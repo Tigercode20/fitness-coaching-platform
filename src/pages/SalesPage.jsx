@@ -1,13 +1,9 @@
 import { useState, useEffect } from 'react'
 import { getSalesBy, createSale } from '../services/salesService'
 import { getAllClients } from '../services/clientService'
-import { FaSpinner } from 'react-icons/fa' // Using icons if available, or simple text
-
-// Simple Toast replacement if react-toastify is not installed/configured globally yet
-const toast = {
-    success: (msg) => alert(`✅ ${msg}`),
-    error: (msg) => alert(`❌ ${msg}`)
-}
+import { getSettings } from '../services/settingsService'
+import { FaSpinner } from 'react-icons/fa'
+import { toast } from 'react-toastify'
 
 export default function SalesPage() {
     const [clients, setClients] = useState([])
@@ -15,6 +11,7 @@ export default function SalesPage() {
     const [loading, setLoading] = useState(false)
     const [selectedClientCode, setSelectedClientCode] = useState('')
     const [selectedClient, setSelectedClient] = useState(null)
+    const [settings, setSettings] = useState(null)
 
     // بيانات المبيعة
     const [formData, setFormData] = useState({
@@ -35,16 +32,34 @@ export default function SalesPage() {
         notes: ''
     })
 
-    // تحميل العملاء عند الفتح
+    // تحميل العملاء والإعدادات عند الفتح
     useEffect(() => {
         loadClients()
         loadSales()
+        loadAppSettings()
     }, [])
+
+    const loadAppSettings = async () => {
+        try {
+            const s = await getSettings()
+            setSettings(s)
+            // تحديث العملة والباقة الافتراضية إذا وجدت
+            if (s.currencies && s.currencies.length > 0) {
+                setFormData(prev => ({ ...prev, currency: s.currencies[0] }))
+            }
+            if (s.packages && s.packages.length > 0) {
+                setFormData(prev => ({ ...prev, package: s.packages[0].id }))
+            }
+        } catch (error) {
+            console.error('❌ خطأ في تحميل الإعدادات:', error)
+        }
+    }
 
     const loadClients = async () => {
         try {
             const clientsList = await getAllClients()
             // ترتيب الأكواد من الأحدث للأقدم
+            // Assuming createdAt is ISO string or Date object
             const sorted = clientsList.sort((a, b) =>
                 new Date(b.createdAt) - new Date(a.createdAt)
             )
@@ -71,11 +86,6 @@ export default function SalesPage() {
 
         if (code) {
             // البحث عن العميل
-            // Note: Parse objects need .get() usually, but our service might return mapped objects.
-            // Let's assume the service returns mapped objects OR Parse objects.
-            // Logic for Parse Object: c.get('code') or c.attributes.code
-            // Logic for Mapped Object: c.ClientCode or c.code
-
             const client = clients.find(c => {
                 const cCode = c.ClientCode || (c.get && c.get('ClientCode')) || (c.get && c.get('code'));
                 return String(cCode) === String(code);
@@ -135,24 +145,24 @@ export default function SalesPage() {
 
             toast.success('تم حفظ المبيعة بنجاح!')
 
-            // إعادة تعيين النموذج
-            setFormData({
+            // إعادة تعيين النموذج (مع الحفاظ على الإعدادات الافتراضية)
+            setFormData(prev => ({
                 email: '',
                 subscriptionType: 'new',
                 clientCode: '',
                 clientName: '',
                 phoneNumber: '',
                 amountPaid: '',
-                currency: 'EGP',
+                currency: settings?.currencies?.[0] || 'EGP',
                 receiveAccount: '',
-                package: 'basic',
+                package: settings?.packages?.[0]?.id || 'basic',
                 startDate: new Date().toISOString().split('T')[0],
                 duration: 1,
                 bonusDuration: 0,
                 screenshot: null,
                 receiveTrainingPlan: false,
                 notes: ''
-            })
+            }))
             setSelectedClientCode('')
             setSelectedClient(null)
 
@@ -198,7 +208,6 @@ export default function SalesPage() {
                                             const name = client.FullName || (client.get && client.get('FullName')) || (client.get && client.get('fullName'));
                                             const date = client.createdAt ? new Date(client.createdAt).toLocaleDateString('ar-EG') : 'N/A';
 
-                                            // Only show clients with codes
                                             if (!code) return null;
 
                                             return (
@@ -235,34 +244,37 @@ export default function SalesPage() {
                                     </div>
                                 )}
 
-                                {/* 2. نوع الاشتراك */}
+                                {/* 2. نوع الاشتراك dynamic */}
                                 <div>
                                     <label className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2">
                                         🚧 نوع الاشتراك
                                     </label>
                                     <div className="space-y-2 text-gray-700 dark:text-gray-300">
-                                        <label className="flex items-center cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="subscriptionType"
-                                                value="new"
-                                                checked={formData.subscriptionType === 'new'}
-                                                onChange={(e) => setFormData({ ...formData, subscriptionType: e.target.value })}
-                                                className="mr-3 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            جديد
-                                        </label>
-                                        <label className="flex items-center cursor-pointer">
-                                            <input
-                                                type="radio"
-                                                name="subscriptionType"
-                                                value="renewal"
-                                                checked={formData.subscriptionType === 'renewal'}
-                                                onChange={(e) => setFormData({ ...formData, subscriptionType: e.target.value })}
-                                                className="mr-3 text-blue-600 focus:ring-blue-500"
-                                            />
-                                            تجديد
-                                        </label>
+                                        {settings?.subscriptionTypes?.map(type => (
+                                            <label key={type.id} className="flex items-center cursor-pointer">
+                                                <input
+                                                    type="radio"
+                                                    name="subscriptionType"
+                                                    value={type.id}
+                                                    checked={formData.subscriptionType === type.id}
+                                                    onChange={(e) => setFormData({ ...formData, subscriptionType: e.target.value })}
+                                                    className="mr-3 text-blue-600 focus:ring-blue-500"
+                                                />
+                                                {type.icon} {type.name}
+                                            </label>
+                                        )) || (
+                                                // Fallback default
+                                                <>
+                                                    <label className="flex items-center cursor-pointer">
+                                                        <input type="radio" name="subscriptionType" value="new" checked={formData.subscriptionType === 'new'} onChange={(e) => setFormData({ ...formData, subscriptionType: e.target.value })} className="mr-3 text-blue-600 focus:ring-blue-500" />
+                                                        ✨ جديد
+                                                    </label>
+                                                    <label className="flex items-center cursor-pointer">
+                                                        <input type="radio" name="subscriptionType" value="renewal" checked={formData.subscriptionType === 'renewal'} onChange={(e) => setFormData({ ...formData, subscriptionType: e.target.value })} className="mr-3 text-blue-600 focus:ring-blue-500" />
+                                                        🔄 تجديد
+                                                    </label>
+                                                </>
+                                            )}
                                     </div>
                                 </div>
 
@@ -291,12 +303,12 @@ export default function SalesPage() {
                                             onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                                             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                                         >
-                                            <option value="EGP">EGP - الجنيه المصري</option>
-                                            <option value="USD">USD - الدولار</option>
-                                            <option value="AED">AED - الدرهم الإماراتي</option>
-                                            <option value="SAR">SAR - الريال السعودي</option>
-                                            <option value="KWD">KWD - الدينار الكويتي</option>
-                                            <option value="EUR">EUR - اليورو</option>
+                                            {settings?.currencies?.map(currency => (
+                                                <option key={currency} value={currency}>{currency}</option>
+                                            ))}
+                                            {(!settings?.currencies || settings.currencies.length === 0) && (
+                                                <option value="EGP">EGP</option>
+                                            )}
                                         </select>
                                     </div>
                                 </div>
@@ -313,9 +325,9 @@ export default function SalesPage() {
                                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                                     >
                                         <option value="">-- اختر حساب الاستقبال --</option>
-                                        <option value="vodafon">Vodafon</option>
-                                        <option value="fawry">Fawry</option>
-                                        <option value="free">FREE</option>
+                                        {settings?.receiveAccounts?.map(account => (
+                                            <option key={account} value={account}>{account}</option>
+                                        ))}
                                     </select>
                                 </div>
 
@@ -329,9 +341,9 @@ export default function SalesPage() {
                                         onChange={(e) => setFormData({ ...formData, package: e.target.value })}
                                         className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                                     >
-                                        <option value="basic">Gold</option>
-                                        <option value="standard">Varialiv</option>
-                                        <option value="premium">VIP</option>
+                                        {settings?.packages?.map(pkg => (
+                                            <option key={pkg.id} value={pkg.id}>{pkg.name}</option>
+                                        ))}
                                     </select>
                                 </div>
 
@@ -452,9 +464,15 @@ export default function SalesPage() {
                                             <p className="text-sm text-gray-600 dark:text-gray-300">
                                                 {sale.get('amountPaid')} {sale.get('currency')}
                                             </p>
-                                            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                                                {new Date(sale.createdAt).toISOString().split('T')[0]}
-                                            </p>
+                                            <div className="flex justify-between items-center mt-1">
+                                                <p className="text-xs text-gray-500 dark:text-gray-400">
+                                                    {new Date(sale.createdAt).toLocaleDateString('ar-EG')}
+                                                </p>
+                                                <span className={`text-[10px] px-2 py-0.5 rounded ${sale.get('subscriptionType') === 'new' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                                                    }`}>
+                                                    {sale.get('subscriptionType') === 'new' ? 'جديد' : 'تجديد'}
+                                                </span>
+                                            </div>
                                         </div>
                                     ))
                                 )}
