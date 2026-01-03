@@ -12,6 +12,7 @@ import {
     FaPlus,
     FaDollarSign,
     FaFileAlt,
+    FaCalendarAlt,
     FaClipboardList,
     FaChartBar,
     FaCog,
@@ -124,6 +125,12 @@ export default function Sidebar({ isOpen, onClose }) {
             label: '📄 إنشاء خطط التدريب',
             path: '/training-plan',
             color: 'text-orange-500'
+        },
+        {
+            icon: <FaCalendarAlt />,
+            label: 'متابعة الخطط',
+            path: '/training-follow-up',
+            color: 'text-cyan-500'
         },
         {
             icon: <FaClipboardList />,

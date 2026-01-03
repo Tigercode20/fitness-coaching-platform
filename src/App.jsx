@@ -22,6 +22,7 @@ import NewClientPage from './pages/NewClientPage'
 import SalesPage from './pages/SalesPage'
 import TrainingPlanPage from './pages/TrainingPlanPage'
 import ClientUpdatePage from './pages/ClientUpdatePage'
+import TrainingFollowUpPage from './pages/TrainingFollowUpPage'
 import PublicFormsPage from './pages/PublicFormsPage'
 import Settings from './pages/Settings'
 import PendingFormsPage from './pages/PendingFormsPage'
@@ -156,7 +157,8 @@ function App() {
                         {/* Form Pages */}
                         <Route path="/new-client" element={<NewClientPage />} />
                         <Route path="/sales" element={<SalesPage />} />
-                        <Route path="/training-plan" element={<TrainingPlanPage />} />
+                        <Route path="/training-plan" element={<ProtectedRoute><TrainingPlanPage /></ProtectedRoute>} />
+                        <Route path="/training-follow-up" element={<ProtectedRoute><TrainingFollowUpPage /></ProtectedRoute>} />
                         <Route path="/client-update" element={<ClientUpdatePage />} />
                         <Route path="/public-forms" element={<PublicFormsPage />} />
                         <Route path="/settings" element={<Settings />} />
