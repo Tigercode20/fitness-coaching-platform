@@ -6,7 +6,7 @@ import Parse from '../services/back4app' // Corrected path based on project stru
 export default function Settings() {
     const [activeTab, setActiveTab] = useState('general')
     const [loading, setLoading] = useState(false)
-    const [darkMode, setDarkMode] = useState(false)
+
     const [settings, setSettings] = useState({
         businessName: 'Fitness Coaching',
         businessLogoUrl: '',
@@ -295,38 +295,25 @@ export default function Settings() {
     }
 
     return (
-        <div className={`min-h-screen transition-colors p-8 ${darkMode ? 'bg-gray-900' : 'bg-gray-50'
-            }`}>
+        <div className="min-h-screen transition-colors p-8 bg-gray-50 dark:bg-gray-900">
             <div className="max-w-6xl mx-auto">
                 {/* الرأس */}
                 <div className="mb-8 flex justify-between items-center">
                     <div>
-                        <h1 className={`text-4xl font-bold mb-2 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                        <h1 className="text-4xl font-bold mb-2 text-gray-900 dark:text-white">
                             ⚙️ الإعدادات
                         </h1>
-                        <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+                        <p className="text-gray-600 dark:text-gray-400">
                             تخصيص النظام وإضافة البيانات
                         </p>
                     </div>
-
-                    {/* زر Dark Mode */}
-                    <button
-                        onClick={() => setDarkMode(!darkMode)}
-                        className={`px-6 py-3 rounded-lg font-bold transition flex items-center gap-2 ${darkMode
-                                ? 'bg-yellow-500 text-black hover:bg-yellow-600'
-                                : 'bg-gray-800 text-white hover:bg-gray-700'
-                            }`}
-                    >
-                        {darkMode ? '☀️ النهار' : '🌙 الليل'}
-                    </button>
                 </div>
 
                 {/* التبويبات والمحتوى */}
                 <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
                     {/* الجانب الأيسر - التبويبات */}
                     <div className="lg:col-span-1">
-                        <div className={`rounded-lg shadow-lg overflow-hidden ${darkMode ? 'bg-gray-800' : 'bg-white'
-                            }`}>
+                        <div className="rounded-lg shadow-lg overflow-hidden bg-white dark:bg-gray-800">
                             {[
                                 { id: 'general', label: '🏢 البيانات العامة' },
                                 { id: 'accounts', label: '💳 الحسابات' },
@@ -337,8 +324,8 @@ export default function Settings() {
                                     key={tab.id}
                                     onClick={() => setActiveTab(tab.id)}
                                     className={`w-full text-right px-6 py-4 border-b transition ${activeTab === tab.id
-                                            ? `bg-blue-500 text-white border-l-4 border-l-blue-700 font-bold`
-                                            : `${darkMode ? 'text-gray-300 hover:bg-gray-700 border-gray-700' : 'text-gray-600 hover:bg-gray-50 border-gray-200'}`
+                                        ? `bg-blue-500 text-white border-l-4 border-l-blue-700 font-bold`
+                                        : `text-gray-600 hover:bg-gray-50 border-gray-200 dark:text-gray-300 dark:hover:bg-gray-700 dark:border-gray-700`
                                         }`}
                                 >
                                     {tab.label}
@@ -351,38 +338,32 @@ export default function Settings() {
                     <div className="lg:col-span-3">
                         {/* البيانات العامة */}
                         {activeTab === 'general' && (
-                            <div className={`rounded-lg shadow-lg p-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                                <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            <div className="rounded-lg shadow-lg p-8 bg-white dark:bg-gray-800">
+                                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
                                     🏢 البيانات العامة
                                 </h2>
 
                                 <div className="space-y-6">
                                     {/* اسم المشروع */}
                                     <div>
-                                        <label className={`block text-sm font-bold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        <label className="block text-sm font-bold mb-3 text-gray-700 dark:text-gray-300">
                                             📝 اسم المشروع
                                         </label>
                                         <input
                                             type="text"
                                             value={formData.businessName}
                                             onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
-                                            className={`w-full px-4 py-3 rounded-lg border-2 transition ${darkMode
-                                                    ? 'bg-gray-700 border-gray-600 text-white focus:border-blue-500'
-                                                    : 'bg-white border-gray-300 text-gray-900 focus:border-blue-500'
-                                                }`}
+                                            className="w-full px-4 py-3 rounded-lg border-2 transition bg-white border-gray-300 text-gray-900 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                             placeholder="اسم المشروع"
                                         />
                                     </div>
 
                                     {/* اللوجو */}
                                     <div>
-                                        <label className={`block text-sm font-bold mb-3 ${darkMode ? 'text-gray-300' : 'text-gray-700'}`}>
+                                        <label className="block text-sm font-bold mb-3 text-gray-700 dark:text-gray-300">
                                             🎨 اللوجو
                                         </label>
-                                        <div className={`border-2 border-dashed rounded-lg p-8 text-center transition ${darkMode
-                                                ? 'border-gray-600 hover:border-blue-500 bg-gray-700'
-                                                : 'border-gray-300 hover:border-blue-500 bg-gray-50'
-                                            }`}>
+                                        <div className="border-2 border-dashed rounded-lg p-8 text-center transition border-gray-300 hover:border-blue-500 bg-gray-50 dark:border-gray-600 dark:bg-gray-700">
                                             {formData.businessLogoPreview && (
                                                 <div className="mb-4">
                                                     <img
@@ -411,7 +392,7 @@ export default function Settings() {
                                                 id="logo-input"
                                             />
                                             <label htmlFor="logo-input" className="cursor-pointer">
-                                                <p className={darkMode ? 'text-gray-300' : 'text-gray-600'}>اسحب أو اضغط</p>
+                                                <p className="text-gray-600 dark:text-gray-300">اسحب أو اضغط</p>
                                             </label>
                                         </div>
                                     </div>
@@ -429,24 +410,20 @@ export default function Settings() {
 
                         {/* الحسابات */}
                         {activeTab === 'accounts' && (
-                            <div className={`rounded-lg shadow-lg p-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                                <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            <div className="rounded-lg shadow-lg p-8 bg-white dark:bg-gray-800">
+                                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
                                     💳 حسابات الاستقبال
                                 </h2>
 
                                 {/* إضافة */}
-                                <div className={`mb-8 p-6 rounded-lg border-2 border-dashed ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-300'
-                                    }`}>
+                                <div className="mb-8 p-6 rounded-lg border-2 border-dashed bg-gray-50 border-gray-300 dark:bg-gray-700 dark:border-gray-600">
                                     <div className="flex gap-3">
                                         <input
                                             type="text"
                                             value={newAccount}
                                             onChange={(e) => setNewAccount(e.target.value)}
                                             placeholder="Vodafon, Fawry..."
-                                            className={`flex-1 px-4 py-2 rounded-lg border-2 ${darkMode
-                                                    ? 'bg-gray-600 border-gray-500 text-white'
-                                                    : 'bg-white border-gray-300 text-gray-900'
-                                                }`}
+                                            className="flex-1 px-4 py-2 rounded-lg border-2 bg-white border-gray-300 text-gray-900 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
                                         />
                                         <button
                                             onClick={handleAddAccount}
@@ -463,10 +440,9 @@ export default function Settings() {
                                     {settings.receiveAccounts.map(account => (
                                         <div
                                             key={account}
-                                            className={`flex justify-between items-center p-4 rounded-lg border-l-4 border-blue-500 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'
-                                                }`}
+                                            className="flex justify-between items-center p-4 rounded-lg border-l-4 border-blue-500 bg-gray-50 dark:bg-gray-700"
                                         >
-                                            <span className="font-bold">💳 {account}</span>
+                                            <span className="font-bold border-none">💳 {account}</span>
                                             <button
                                                 onClick={() => handleDeleteAccount(account)}
                                                 disabled={loading}
@@ -482,34 +458,27 @@ export default function Settings() {
 
                         {/* الباقات */}
                         {activeTab === 'packages' && (
-                            <div className={`rounded-lg shadow-lg p-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                                <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            <div className="rounded-lg shadow-lg p-8 bg-white dark:bg-gray-800">
+                                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
                                     📦 الباقات
                                 </h2>
 
                                 {/* إضافة */}
-                                <div className={`mb-8 p-6 rounded-lg border-2 border-dashed ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-300'
-                                    }`}>
+                                <div className="mb-8 p-6 rounded-lg border-2 border-dashed bg-gray-50 border-gray-300 dark:bg-gray-700 dark:border-gray-600">
                                     <div className="space-y-3">
                                         <input
                                             type="text"
                                             value={newPackage.name}
                                             onChange={(e) => setNewPackage({ ...newPackage, name: e.target.value })}
                                             placeholder="اسم الباقة"
-                                            className={`w-full px-4 py-2 rounded-lg border-2 ${darkMode
-                                                    ? 'bg-gray-600 border-gray-500 text-white'
-                                                    : 'bg-white border-gray-300 text-gray-900'
-                                                }`}
+                                            className="w-full px-4 py-2 rounded-lg border-2 bg-white border-gray-300 text-gray-900 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
                                         />
                                         <textarea
                                             value={newPackage.description}
                                             onChange={(e) => setNewPackage({ ...newPackage, description: e.target.value })}
                                             placeholder="الوصف"
                                             rows="2"
-                                            className={`w-full px-4 py-2 rounded-lg border-2 ${darkMode
-                                                    ? 'bg-gray-600 border-gray-500 text-white'
-                                                    : 'bg-white border-gray-300 text-gray-900'
-                                                }`}
+                                            className="w-full px-4 py-2 rounded-lg border-2 bg-white border-gray-300 text-gray-900 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
                                         />
                                         <button
                                             onClick={handleAddPackage}
@@ -526,13 +495,12 @@ export default function Settings() {
                                     {settings.packages.map(pkg => (
                                         <div
                                             key={pkg.id}
-                                            className={`p-4 rounded-lg border-l-4 border-purple-500 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'
-                                                }`}
+                                            className="p-4 rounded-lg border-l-4 border-purple-500 bg-gray-50 dark:bg-gray-700"
                                         >
                                             <div className="flex justify-between items-start">
                                                 <div>
                                                     <h4 className="font-bold text-lg">📦 {pkg.name}</h4>
-                                                    <p className={`text-sm mt-1 ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                    <p className="text-sm mt-1 text-gray-600 dark:text-gray-400">
                                                         {pkg.description}
                                                     </p>
                                                 </div>
@@ -552,14 +520,13 @@ export default function Settings() {
 
                         {/* العملات */}
                         {activeTab === 'currencies' && (
-                            <div className={`rounded-lg shadow-lg p-8 ${darkMode ? 'bg-gray-800' : 'bg-white'}`}>
-                                <h2 className={`text-2xl font-bold mb-6 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                            <div className="rounded-lg shadow-lg p-8 bg-white dark:bg-gray-800">
+                                <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
                                     💱 العملات
                                 </h2>
 
                                 {/* إضافة */}
-                                <div className={`mb-8 p-6 rounded-lg border-2 border-dashed ${darkMode ? 'bg-gray-700 border-gray-600' : 'bg-gray-50 border-gray-300'
-                                    }`}>
+                                <div className="mb-8 p-6 rounded-lg border-2 border-dashed bg-gray-50 border-gray-300 dark:bg-gray-700 dark:border-gray-600">
                                     <div className="flex gap-3">
                                         <input
                                             type="text"
@@ -567,10 +534,7 @@ export default function Settings() {
                                             onChange={(e) => setNewCurrency(e.target.value.toUpperCase())}
                                             placeholder="EGP, USD..."
                                             maxLength="3"
-                                            className={`flex-1 px-4 py-2 rounded-lg border-2 uppercase ${darkMode
-                                                    ? 'bg-gray-600 border-gray-500 text-white'
-                                                    : 'bg-white border-gray-300 text-gray-900'
-                                                }`}
+                                            className="flex-1 px-4 py-2 rounded-lg border-2 uppercase bg-white border-gray-300 text-gray-900 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
                                         />
                                         <button
                                             onClick={handleAddCurrency}
@@ -587,8 +551,7 @@ export default function Settings() {
                                     {settings.currencies.map(currency => (
                                         <div
                                             key={currency}
-                                            className={`flex justify-between items-center p-3 rounded-lg border-l-4 border-cyan-500 ${darkMode ? 'bg-gray-700' : 'bg-gray-50'
-                                                }`}
+                                            className="flex justify-between items-center p-3 rounded-lg border-l-4 border-cyan-500 bg-gray-50 dark:bg-gray-700"
                                         >
                                             <span className="font-bold">💱 {currency}</span>
                                             <button

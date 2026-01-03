@@ -16,7 +16,6 @@ export default function DashboardOverview() {
         totalRevenue: 0,
         avgDuration: 0
     })
-    const [darkMode, setDarkMode] = useState(false)
 
     useEffect(() => {
         loadAllData()
@@ -70,12 +69,9 @@ export default function DashboardOverview() {
     }
 
     return (
-        <div className={`min-h-screen transition-colors ${darkMode
-            ? 'bg-gray-900 text-white'
-            : 'bg-gray-50 text-gray-900'
-            } p-8`}>
+        <div className="min-h-screen transition-colors bg-gray-50 dark:bg-gray-900 text-gray-900 dark:text-white p-8">
             <div className="max-w-7xl mx-auto">
-                {/* الرأس مع زر Dark Mode */}
+                {/* الرأس */}
                 <div className="mb-8 flex justify-between items-center">
                     <div className="flex items-center gap-4">
                         {businessInfo.logo && (
@@ -89,32 +85,20 @@ export default function DashboardOverview() {
                             <h1 className="text-4xl font-bold mb-2">
                                 🏠 {businessInfo.name}
                             </h1>
-                            <p className={darkMode ? 'text-gray-400' : 'text-gray-600'}>
+                            <p className="text-gray-600 dark:text-gray-400">
                                 إدارة شاملة لعملائك واشتراكاتك ومبيعاتك
                             </p>
                         </div>
                     </div>
-
-                    {/* زر تبديل الوضع الليلي */}
-                    <button
-                        onClick={() => setDarkMode(!darkMode)}
-                        className={`px-6 py-3 rounded-lg font-bold transition flex items-center gap-2 ${darkMode
-                            ? 'bg-yellow-500 text-black hover:bg-yellow-600'
-                            : 'bg-gray-800 text-white hover:bg-gray-700'
-                            }`}
-                    >
-                        {darkMode ? '☀️ وضع النهار' : '🌙 وضع الليل'}
-                    </button>
                 </div>
 
                 {/* البطاقات الإحصائية */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6 mb-8">
                     {/* إجمالي العملاء */}
-                    <div className={`rounded-lg shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition ${darkMode ? 'bg-gray-800' : 'bg-white'
-                        }`}>
+                    <div className="rounded-lg shadow-lg p-6 border-l-4 border-blue-500 hover:shadow-xl transition bg-white dark:bg-gray-800">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className={`text-sm font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">
                                     👥 إجمالي العملاء
                                 </p>
                                 <p className="text-5xl font-bold mt-2 text-blue-500">
@@ -123,17 +107,16 @@ export default function DashboardOverview() {
                             </div>
                             <span className="text-4xl">👥</span>
                         </div>
-                        <p className={`text-sm mt-4 ${darkMode ? 'text-gray-500' : 'text-blue-600'}`}>
+                        <p className="text-sm mt-4 text-blue-600 dark:text-gray-500">
                             عدد العملاء المسجلين
                         </p>
                     </div>
 
                     {/* إجمالي الاشتراكات */}
-                    <div className={`rounded-lg shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition ${darkMode ? 'bg-gray-800' : 'bg-white'
-                        }`}>
+                    <div className="rounded-lg shadow-lg p-6 border-l-4 border-green-500 hover:shadow-xl transition bg-white dark:bg-gray-800">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className={`text-sm font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">
                                     📋 إجمالي الاشتراكات
                                 </p>
                                 <p className="text-5xl font-bold mt-2 text-green-500">
@@ -142,17 +125,16 @@ export default function DashboardOverview() {
                             </div>
                             <span className="text-4xl">📋</span>
                         </div>
-                        <p className={`text-sm mt-4 ${darkMode ? 'text-gray-500' : 'text-green-600'}`}>
+                        <p className="text-sm mt-4 text-green-600 dark:text-gray-500">
                             عدد الاشتراكات المنشأة
                         </p>
                     </div>
 
                     {/* اشتراكات هذا الشهر */}
-                    <div className={`rounded-lg shadow-lg p-6 border-l-4 border-orange-500 hover:shadow-xl transition ${darkMode ? 'bg-gray-800' : 'bg-white'
-                        }`}>
+                    <div className="rounded-lg shadow-lg p-6 border-l-4 border-orange-500 hover:shadow-xl transition bg-white dark:bg-gray-800">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className={`text-sm font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">
                                     📅 هذا الشهر
                                 </p>
                                 <p className="text-5xl font-bold mt-2 text-orange-500">
@@ -161,17 +143,16 @@ export default function DashboardOverview() {
                             </div>
                             <span className="text-4xl">📅</span>
                         </div>
-                        <p className={`text-sm mt-4 ${darkMode ? 'text-gray-500' : 'text-orange-600'}`}>
+                        <p className="text-sm mt-4 text-orange-600 dark:text-gray-500">
                             اشتراكات شهر الحالي
                         </p>
                     </div>
 
                     {/* إجمالي الإيرادات */}
-                    <div className={`rounded-lg shadow-lg p-6 border-l-4 border-purple-500 hover:shadow-xl transition ${darkMode ? 'bg-gray-800' : 'bg-white'
-                        }`}>
+                    <div className="rounded-lg shadow-lg p-6 border-l-4 border-purple-500 hover:shadow-xl transition bg-white dark:bg-gray-800">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className={`text-sm font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">
                                     💰 الإيرادات
                                 </p>
                                 <p className="text-4xl font-bold mt-2 text-purple-500">
@@ -180,17 +161,16 @@ export default function DashboardOverview() {
                             </div>
                             <span className="text-4xl">💰</span>
                         </div>
-                        <p className={`text-sm mt-4 ${darkMode ? 'text-gray-500' : 'text-purple-600'}`}>
+                        <p className="text-sm mt-4 text-purple-600 dark:text-gray-500">
                             من جميع الاشتراكات
                         </p>
                     </div>
 
                     {/* متوسط المدة */}
-                    <div className={`rounded-lg shadow-lg p-6 border-l-4 border-cyan-500 hover:shadow-xl transition ${darkMode ? 'bg-gray-800' : 'bg-white'
-                        }`}>
+                    <div className="rounded-lg shadow-lg p-6 border-l-4 border-cyan-500 hover:shadow-xl transition bg-white dark:bg-gray-800">
                         <div className="flex justify-between items-start">
                             <div>
-                                <p className={`text-sm font-semibold ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">
                                     ⌛ متوسط المدة
                                 </p>
                                 <p className="text-5xl font-bold mt-2 text-cyan-500">
@@ -199,7 +179,7 @@ export default function DashboardOverview() {
                             </div>
                             <span className="text-4xl">⌛</span>
                         </div>
-                        <p className={`text-sm mt-4 ${darkMode ? 'text-gray-500' : 'text-cyan-600'}`}>
+                        <p className="text-sm mt-4 text-cyan-600 dark:text-gray-500">
                             عدد الشهور
                         </p>
                     </div>
@@ -208,8 +188,7 @@ export default function DashboardOverview() {
                 {/* الأقسام الرئيسية */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* العملاء الأخيرين */}
-                    <div className={`rounded-lg shadow-lg p-6 hover:shadow-xl transition ${darkMode ? 'bg-gray-800' : 'bg-white'
-                        }`}>
+                    <div className="rounded-lg shadow-lg p-6 hover:shadow-xl transition bg-white dark:bg-gray-800">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-2xl font-bold">👥 العملاء الأخيرين</h2>
                             <Link
@@ -221,7 +200,7 @@ export default function DashboardOverview() {
                         </div>
 
                         {clients.length === 0 ? (
-                            <p className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <p className="text-center py-8 text-gray-500 dark:text-gray-400">
                                 لا يوجد عملاء حتى الآن
                             </p>
                         ) : (
@@ -229,27 +208,23 @@ export default function DashboardOverview() {
                                 {clients.map(client => (
                                     <div
                                         key={client.id}
-                                        className={`p-4 rounded-lg border-l-4 border-blue-500 hover:shadow-md transition ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-50 hover:bg-gray-100'
-                                            }`}
+                                        className="p-4 rounded-lg border-l-4 border-blue-500 hover:shadow-md transition bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600"
                                     >
                                         <div className="flex justify-between items-start">
                                             <div>
                                                 <h3 className="font-bold text-lg">{client.fullName || client.FullName}</h3>
-                                                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400">
                                                     📧 {client.email || client.Email}
                                                 </p>
-                                                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400">
                                                     🔢 {client.phone || client.Phone}
                                                 </p>
                                             </div>
-                                            <span className={`text-xs px-3 py-1 rounded-full font-semibold ${darkMode
-                                                ? 'bg-blue-900 text-blue-200'
-                                                : 'bg-blue-100 text-blue-800'
-                                                }`}>
+                                            <span className="text-xs px-3 py-1 rounded-full font-semibold bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
                                                 🆔 {client.code || client.ClientCode}
                                             </span>
                                         </div>
-                                        <p className={`text-xs mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                                        <p className="text-xs mt-2 text-gray-500 dark:text-gray-500">
                                             📅 {new Date(client.createdAt).toLocaleString('ar-EG')}
                                         </p>
                                     </div>
@@ -266,8 +241,7 @@ export default function DashboardOverview() {
                     </div>
 
                     {/* الاشتراكات الحديثة */}
-                    <div className={`rounded-lg shadow-lg p-6 hover:shadow-xl transition ${darkMode ? 'bg-gray-800' : 'bg-white'
-                        }`}>
+                    <div className="rounded-lg shadow-lg p-6 hover:shadow-xl transition bg-white dark:bg-gray-800">
                         <div className="flex justify-between items-center mb-6">
                             <h2 className="text-2xl font-bold">📋 الاشتراكات الحديثة</h2>
                             <Link
@@ -279,7 +253,7 @@ export default function DashboardOverview() {
                         </div>
 
                         {sales.length === 0 ? (
-                            <p className={`text-center py-8 ${darkMode ? 'text-gray-400' : 'text-gray-500'}`}>
+                            <p className="text-center py-8 text-gray-500 dark:text-gray-400">
                                 لا توجد اشتراكات حتى الآن
                             </p>
                         ) : (
@@ -287,27 +261,26 @@ export default function DashboardOverview() {
                                 {sales.map(sale => (
                                     <div
                                         key={sale.id}
-                                        className={`p-4 rounded-lg border-l-4 border-green-500 hover:shadow-md transition ${darkMode ? 'bg-gray-700 hover:bg-gray-600' : 'bg-gray-50 hover:bg-gray-100'
-                                            }`}
+                                        className="p-4 rounded-lg border-l-4 border-green-500 hover:shadow-md transition bg-gray-50 hover:bg-gray-100 dark:bg-gray-700 dark:hover:bg-gray-600"
                                     >
                                         <div className="flex justify-between items-start">
                                             <div className="flex-1">
                                                 <h3 className="font-bold text-lg">{sale.get('clientName')}</h3>
-                                                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400">
                                                     💵 {sale.get('amountPaid')} {sale.get('currency')}
                                                 </p>
-                                                <p className={`text-sm ${darkMode ? 'text-gray-400' : 'text-gray-600'}`}>
+                                                <p className="text-sm text-gray-600 dark:text-gray-400">
                                                     📦 {sale.get('package')}
                                                 </p>
                                             </div>
                                             <span className={`text-xs px-3 py-1 rounded-full font-semibold ${sale.get('subscriptionType') === 'new'
-                                                ? (darkMode ? 'bg-green-900 text-green-200' : 'bg-green-100 text-green-800')
-                                                : (darkMode ? 'bg-blue-900 text-blue-200' : 'bg-blue-100 text-blue-800')
+                                                ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                                : 'bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200'
                                                 }`}>
                                                 {sale.get('subscriptionType') === 'new' ? '✨ جديد' : '🔄 تجديد'}
                                             </span>
                                         </div>
-                                        <p className={`text-xs mt-2 ${darkMode ? 'text-gray-500' : 'text-gray-500'}`}>
+                                        <p className="text-xs mt-2 text-gray-500 dark:text-gray-500">
                                             ⏰ {new Date(sale.get('timestamp')).toLocaleString('ar-EG')}
                                         </p>
                                     </div>
