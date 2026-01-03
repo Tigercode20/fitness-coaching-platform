@@ -30,29 +30,22 @@ export default function ClientForm() {
         subscriptionReason: '',
 
         // الصور
+        personalImageUrl: '',
         frontImageUrl: '',
         sideImageUrl: '',
         backImageUrl: '',
-
-        // الصحة
         healthIssues: '',
         labTest: '',
         medications: '',
         injuries: '',
         smoker: '',
-
-        // الملفات الطبية
         labFileUrl: '',
         xrayFileUrl: '',
-
-        // النظام الغذائي السابق
         previousDiet: '',
         dayNature: '',
         nonAdherenceReasons: '',
         stimulants: '',
         previousDietFileUrl: '',
-
-        // التفضيلات الغذائية
         foodAllergies: '',
         dislikedFood: '',
         vitamins: '',
@@ -62,8 +55,6 @@ export default function ClientForm() {
         favoriteProtein: '',
         favoriteCarbs: '',
         favoriteFats: '',
-
-        // التمرين
         exerciseExperience: '',
         weightTrainingDuration: '',
         otherSports: '',
@@ -74,8 +65,6 @@ export default function ClientForm() {
         painExercises: '',
         cardioType: '',
         dailySteps: '',
-
-        // تجربة أونلاين
         onlineExperience: '',
         additionalNotes: ''
     })
@@ -258,6 +247,7 @@ export default function ClientForm() {
                 height: '',
                 goal: '',
                 subscriptionReason: '',
+                personalImageUrl: '',
                 frontImageUrl: '',
                 sideImageUrl: '',
                 backImageUrl: '',
@@ -417,6 +407,51 @@ export default function ClientForm() {
                                 onChange={handleInputChange}
                                 className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white placeholder-gray-400 focus:ring-2 focus:ring-teal-500 focus:border-transparent transition-colors"
                             />
+                        </div>
+
+                        {/* صورة شخصية */}
+                        <div className="md:col-span-2 mt-4 border-t border-gray-200 dark:border-gray-700 pt-4">
+                            <label className="block font-bold mb-2 text-blue-600 dark:text-blue-400">
+                                📸 صورة شخصية (اختياري)
+                                <span className="block text-xs font-normal text-gray-500 dark:text-gray-400 mt-1">
+                                    اضافه صوره شخصية لو حابب - Add a personal photo if you like
+                                </span>
+                            </label>
+                            <div className="border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-lg p-6 text-center hover:border-blue-500 transition-colors bg-white dark:bg-gray-800">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => handleImageUpload(e, 'personal')}
+                                    className="hidden"
+                                    id="personal-photo-upload"
+                                />
+                                <label htmlFor="personal-photo-upload" className="cursor-pointer block">
+                                    {formData.personalImageUrl ? (
+                                        <div className="flex flex-col items-center animate-fadeIn">
+                                            <div className="w-24 h-24 rounded-full overflow-hidden border-4 border-blue-500 shadow-md mb-3">
+                                                <img
+                                                    src={formData.personalImageUrl}
+                                                    alt="Personal"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                            <div className="flex items-center gap-2 text-green-600 font-bold bg-green-50 px-3 py-1 rounded-full">
+                                                <span>✅</span>
+                                                <span>تم رفع الصورة</span>
+                                            </div>
+                                            <span className="text-xs text-blue-500 mt-2 hover:underline">اضغط لتغيير الصورة</span>
+                                        </div>
+                                    ) : (
+                                        <div className="flex flex-col items-center py-2">
+                                            <div className="w-16 h-16 bg-blue-100 dark:bg-blue-900/30 text-blue-500 rounded-full flex items-center justify-center text-2xl mb-3">
+                                                👤
+                                            </div>
+                                            <span className="text-blue-600 dark:text-blue-400 font-bold text-lg">اضغط لرفع صورة شخصية</span>
+                                            <span className="text-sm text-gray-400 mt-1">JPG, PNG (Max 5MB)</span>
+                                        </div>
+                                    )}
+                                </label>
+                            </div>
                         </div>
                     </div>
                 </section>
