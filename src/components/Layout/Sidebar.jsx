@@ -1,6 +1,6 @@
+
 // ============================================
 // src/components/Layout/Sidebar.jsx
-// إضافة كل الروابط للفورمات الأربعة
 // ============================================
 
 import { Link, useLocation } from 'react-router-dom'
@@ -14,9 +14,16 @@ import {
     FaClipboardList,
     FaChartBar,
     FaCog,
-    FaLink
+    FaLink,
+    FaSignInAlt // Corrected Logout Icon if needed
 } from 'react-icons/fa'
 import { addFakeData, clearAllData } from '../../services/fakeDataUtils'
+
+// Services are imported dynamically to avoid circular dependencies if any, 
+// but standard import is better if no circular dependency exists.
+import { getAllClients } from '../../services/clientService'
+import { getPendingFormsCount } from '../../services/pendingFormService'
+import { getSalesBy } from '../../services/salesService' // Import Sales Service
 
 export default function Sidebar({ isOpen, onClose }) {
     const location = useLocation()
@@ -24,8 +31,8 @@ export default function Sidebar({ isOpen, onClose }) {
     // Stats State
     const [stats, setStats] = useState({
         clientsCount: 0,
-        tempSubscriptions: 18,
-        thisMonth: 6,
+        subscriptionsCount: 0,
+        thisMonthCount: 0,
         pendingCount: 0
     })
 
@@ -33,17 +40,34 @@ export default function Sidebar({ isOpen, onClose }) {
         // دالة تحديث الإحصائيات
         const updateStats = async () => {
             try {
-                const { getAllClients } = await import('../../services/clientService')
-                const { getPendingFormsCount } = await import('../../services/pendingFormService')
-
+                // 1. Clients Count
                 const clients = await getAllClients()
+                const clientsCount = clients.length
+
+                // 2. Pending Forms Count
                 const pendingCount = await getPendingFormsCount()
 
-                setStats(prev => ({
-                    ...prev,
-                    clientsCount: clients.length,
-                    pendingCount: pendingCount
-                }))
+                // 3. Subscriptions (Sales) Count
+                // Note: getSalesBy returns Parse Objects.
+                const sales = await getSalesBy()
+                const subscriptionsCount = sales.length
+
+                // 4. This Month Sales
+                const now = new Date()
+                const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1)
+
+                const thisMonthSales = sales.filter(sale => {
+                    const saleDate = new Date(sale.createdAt)
+                    return saleDate >= startOfMonth
+                })
+                const thisMonthCount = thisMonthSales.length
+
+                setStats({
+                    clientsCount,
+                    subscriptionsCount,
+                    thisMonthCount,
+                    pendingCount
+                })
             } catch (e) {
                 console.error('Error loading stats', e)
             }
@@ -51,7 +75,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
         updateStats()
 
-        // Optional: Listen for an event if we want real-time update triggers from other components
+        // Listen for events
         const handleUpdates = () => updateStats()
         window.addEventListener('clients-updated', handleUpdates)
 
@@ -206,16 +230,16 @@ export default function Sidebar({ isOpen, onClose }) {
                     </h3>
                     <div className="space-y-2 text-xs">
                         <div className="flex justify-between items-center">
-                            <span className="text-gray-600 dark:text-gray-400">العملاء (المستوردين)</span>
+                            <span className="text-gray-600 dark:text-gray-400">العملاء</span>
                             <span className="font-bold text-primary">{stats.clientsCount}</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-gray-600 dark:text-gray-400">الاشتراكات</span>
-                            <span className="font-bold text-green-500">{stats.tempSubscriptions}</span>
+                            <span className="font-bold text-green-500">{stats.subscriptionsCount}</span>
                         </div>
                         <div className="flex justify-between items-center">
                             <span className="text-gray-600 dark:text-gray-400">هذا الشهر</span>
-                            <span className="font-bold text-yellow-500">{stats.thisMonth}</span>
+                            <span className="font-bold text-yellow-500">{stats.thisMonthCount}</span>
                         </div>
                     </div>
                 </div>
@@ -234,27 +258,33 @@ export default function Sidebar({ isOpen, onClose }) {
 
                     {/* Developer Tools */}
                     <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-800 space-y-2">
-                        <button
-                            onClick={async () => {
-                                const success = await addFakeData(5);
-                                if (success) {
-                                    alert('✅ Added 5 Fake Clients & Subscriptions!');
-                                    window.location.reload();
-                                }
-                            }}
-                            className="w-full px-3 py-2 bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 text-xs font-bold rounded flex items-center justify-center gap-2 transition"
-                        >
-                            ➕ بيانات وهمية (5)
-                        </button>
-                        <button
-                            onClick={async () => {
-                                const success = await clearAllData();
-                                if (success) window.location.reload();
-                            }}
-                            className="w-full px-3 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-xs rounded transition"
-                        >
-                            🗑️ حذف جميع البيانات
-                        </button>
+                        <div className="grid grid-cols-2 gap-2">
+                            <button
+                                onClick={async () => {
+                                    const success = await addFakeData(5);
+                                    if (success) {
+                                        window.dispatchEvent(new Event('clients-updated'));
+                                        alert('✅ Added 5 Fake Clients & Subscriptions!');
+                                    }
+                                }}
+                                className="px-2 py-2 bg-green-500/10 hover:bg-green-500/20 text-green-600 dark:text-green-400 text-[10px] font-bold rounded flex flex-col items-center justify-center transition"
+                            >
+                                ➕ بيانات
+                            </button>
+                            <button
+                                onClick={async () => {
+                                    if (confirm('Delete All Data?')) {
+                                        const success = await clearAllData();
+                                        if (success) {
+                                            window.dispatchEvent(new Event('clients-updated'));
+                                        }
+                                    }
+                                }}
+                                className="px-2 py-2 bg-red-500/10 hover:bg-red-500/20 text-red-600 dark:text-red-400 text-[10px] rounded flex flex-col items-center justify-center transition"
+                            >
+                                🗑️ حذف
+                            </button>
+                        </div>
                     </div>
                 </div>
             </aside>
