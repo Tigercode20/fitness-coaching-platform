@@ -2,13 +2,14 @@
 import { useState, useEffect } from 'react'
 import { getAllClients } from '../services/clientService'
 import { getSalesBy } from '../services/salesService'
-import { getBusinessInfo } from '../services/settingsService'
+import { getSettings } from '../services/settingsService'
 import { Link } from 'react-router-dom'
 
 export default function DashboardOverview() {
     const [clients, setClients] = useState([])
     const [sales, setSales] = useState([])
     const [businessInfo, setBusinessInfo] = useState({ name: 'Fitness Coaching', logo: '' })
+    const [settings, setSettings] = useState({ primaryCurrency: 'EGP', currencies: [] })
     const [stats, setStats] = useState({
         totalClients: 0,
         totalSubscriptions: 0,
@@ -38,9 +39,16 @@ export default function DashboardOverview() {
             const recentSales = salesList.slice(0, 5)
             setSales(recentSales)
 
-            // 3. جلب بيانات المشروع
-            const info = await getBusinessInfo()
-            setBusinessInfo(info)
+            // 3. جلب الإعدادات (باستخدام getSettings للحصول على العملات)
+            const appSettings = await getSettings()
+            setBusinessInfo({
+                name: appSettings.businessName,
+                logo: appSettings.businessLogoUrl
+            })
+            setSettings({
+                primaryCurrency: appSettings.primaryCurrency,
+                currencies: appSettings.currencies
+            })
 
             // 4. حساب الإحصائيات من البيانات الحقيقية
             const now = new Date()
@@ -52,7 +60,26 @@ export default function DashboardOverview() {
                 return saleDate >= firstDayOfMonth
             })
 
-            const totalRevenue = salesList.reduce((sum, sale) => sum + (parseFloat(sale.get('amountPaid')) || 0), 0)
+            // حساب الإيرادات مع مراعاة فرق العملة
+            const totalRevenue = salesList.reduce((sum, sale) => {
+                const amount = parseFloat(sale.get('amountPaid')) || 0
+                const currencyCode = sale.get('currency') || 'EGP' // افتراض الجنيه في حالة عدم التحديد
+
+                // البحث عن سعر الصرف للعملة المستخدمة
+                // العملات المخزنة في الإعدادات قد تكون سلاسل نصية (قديم) أو كائنات (جديد)
+                // getSettings في الخدمة يتولى توحيدها إلى كائنات، لكن نتحقق للأمان
+                let rate = 1
+
+                if (appSettings.currencies && Array.isArray(appSettings.currencies)) {
+                    const currencySetting = appSettings.currencies.find(c => c.code === currencyCode)
+                    if (currencySetting) {
+                        rate = parseFloat(currencySetting.rate) || 1
+                    }
+                }
+
+                return sum + (amount * rate)
+            }, 0)
+
             const totalDuration = salesList.reduce((sum, sale) => sum + (parseInt(sale.get('duration')) || 0), 0)
             const avgDur = salesList.length > 0 ? (totalDuration / salesList.length).toFixed(1) : 0
 
@@ -155,9 +182,14 @@ export default function DashboardOverview() {
                                 <p className="text-sm font-semibold text-gray-600 dark:text-gray-400">
                                     💰 الإيرادات
                                 </p>
-                                <p className="text-4xl font-bold mt-2 text-purple-500">
-                                    {stats.totalRevenue}
-                                </p>
+                                <div className="flex items-baseline gap-1 mt-2">
+                                    <p className="text-4xl font-bold text-purple-500">
+                                        {stats.totalRevenue}
+                                    </p>
+                                    <span className="text-lg font-bold text-purple-400">
+                                        {settings.primaryCurrency}
+                                    </span>
+                                </div>
                             </div>
                             <span className="text-4xl">💰</span>
                         </div>

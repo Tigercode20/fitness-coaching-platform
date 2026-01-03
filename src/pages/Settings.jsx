@@ -16,18 +16,26 @@ export default function Settings() {
             { id: 'standard', name: 'Varialiv', description: 'الباقة المتوسطة' },
             { id: 'premium', name: 'VIP', description: 'الباقة المتقدمة' }
         ],
-        currencies: ['EGP', 'USD', 'AED', 'SAR', 'KWD', 'EUR']
+        currencies: [
+            { code: 'EGP', rate: 1 },
+            { code: 'USD', rate: 50 },
+            { code: 'SAR', rate: 13 }
+        ],
+        primaryCurrency: 'EGP',
+        language: 'ar'
     })
 
     const [formData, setFormData] = useState({
         businessName: 'Fitness Coaching',
         businessLogo: null,
-        businessLogoPreview: ''
+        businessLogoPreview: '',
+        primaryCurrency: 'EGP',
+        language: 'ar'
     })
 
     const [newAccount, setNewAccount] = useState('')
     const [newPackage, setNewPackage] = useState({ name: '', description: '' })
-    const [newCurrency, setNewCurrency] = useState('')
+    const [newCurrency, setNewCurrency] = useState({ code: '', rate: '' })
 
     useEffect(() => {
         loadSettings()
@@ -40,6 +48,12 @@ export default function Settings() {
             const result = await query.first()
 
             if (result) {
+                // Handle legacy currencies (array of strings)
+                let loadedCurrencies = result.get('currencies') || ['EGP', 'USD', 'AED', 'SAR', 'KWD', 'EUR']
+                if (loadedCurrencies.length > 0 && typeof loadedCurrencies[0] === 'string') {
+                    loadedCurrencies = loadedCurrencies.map(c => ({ code: c, rate: 1 }))
+                }
+
                 const data = {
                     businessName: result.get('businessName') || 'Fitness Coaching',
                     businessLogoUrl: result.get('businessLogoUrl') || '',
@@ -49,14 +63,18 @@ export default function Settings() {
                         { id: 'standard', name: 'Varialiv', description: 'الباقة المتوسطة' },
                         { id: 'premium', name: 'VIP', description: 'الباقة المتقدمة' }
                     ],
-                    currencies: result.get('currencies') || ['EGP', 'USD', 'AED', 'SAR', 'KWD', 'EUR']
+                    currencies: loadedCurrencies,
+                    primaryCurrency: result.get('primaryCurrency') || 'EGP',
+                    language: result.get('language') || 'ar'
                 }
 
                 setSettings(data)
                 setFormData({
                     businessName: data.businessName,
                     businessLogoPreview: data.businessLogoUrl,
-                    businessLogo: null
+                    businessLogo: null,
+                    primaryCurrency: data.primaryCurrency,
+                    language: data.language
                 })
             } else {
                 await initializeSettings()
@@ -71,6 +89,12 @@ export default function Settings() {
         try {
             const Settings = Parse.Object.extend('Settings')
             const newSettings = new Settings()
+            const defaultCurrencies = [
+                { code: 'EGP', rate: 1 },
+                { code: 'USD', rate: 50 },
+                { code: 'AED', rate: 13 },
+                { code: 'SAR', rate: 13 }
+            ]
 
             newSettings.set('businessName', 'Fitness Coaching')
             newSettings.set('receiveAccounts', ['Vodafon', 'Fawry', 'FREE'])
@@ -79,7 +103,9 @@ export default function Settings() {
                 { id: 'standard', name: 'Varialiv', description: 'الباقة المتوسطة' },
                 { id: 'premium', name: 'VIP', description: 'الباقة المتقدمة' }
             ])
-            newSettings.set('currencies', ['EGP', 'USD', 'AED', 'SAR', 'KWD', 'EUR'])
+            newSettings.set('currencies', defaultCurrencies)
+            newSettings.set('primaryCurrency', 'EGP')
+            newSettings.set('language', 'ar')
 
             await newSettings.save()
             toast.success('✅ تم إنشاء الإعدادات الافتراضية')
@@ -106,6 +132,8 @@ export default function Settings() {
             }
 
             settingsObj.set('businessName', formData.businessName)
+            settingsObj.set('primaryCurrency', formData.primaryCurrency)
+            settingsObj.set('language', formData.language)
 
             // رفع الصورة
             if (formData.businessLogo) {
@@ -240,8 +268,14 @@ export default function Settings() {
 
     // إضافة عملة
     const handleAddCurrency = async () => {
-        if (!newCurrency.trim()) {
-            toast.warning('⚠️ أدخل رمز العملة')
+        if (!newCurrency.code.trim() || !newCurrency.rate) {
+            toast.warning('⚠️ أدخل رمز العملة وسعر الصرف')
+            return
+        }
+
+        const rate = parseFloat(newCurrency.rate)
+        if (isNaN(rate) || rate <= 0) {
+            toast.warning('⚠️ سعر الصرف يجب أن يكون رقماً صحيحاً')
             return
         }
 
@@ -251,16 +285,26 @@ export default function Settings() {
             const settingsObj = await query.first()
 
             if (settingsObj) {
-                const currencies = settingsObj.get('currencies') || []
-                if (!currencies.includes(newCurrency.toUpperCase())) {
-                    currencies.push(newCurrency.toUpperCase())
-                    settingsObj.set('currencies', currencies)
+                // Ensure we get current structure, handling migration if needed
+                let currentCurrencies = settingsObj.get('currencies') || []
+                if (currentCurrencies.length > 0 && typeof currentCurrencies[0] === 'string') {
+                    currentCurrencies = currentCurrencies.map(c => ({ code: c, rate: 1 }))
+                }
+
+                const existingIndex = currentCurrencies.findIndex(c => c.code === newCurrency.code.toUpperCase())
+
+                if (existingIndex === -1) {
+                    currentCurrencies.push({
+                        code: newCurrency.code.toUpperCase(),
+                        rate: rate
+                    })
+                    settingsObj.set('currencies', currentCurrencies)
                     await settingsObj.save()
                     toast.success('✅ تم إضافة العملة!')
-                    setNewCurrency('')
+                    setNewCurrency({ code: '', rate: '' })
                     loadSettings()
                 } else {
-                    toast.warning('⚠️ العملة موجودة')
+                    toast.warning('⚠️ العملة موجودة بالفعل')
                 }
             }
         } catch (error) {
@@ -271,8 +315,8 @@ export default function Settings() {
     }
 
     // حذف عملة
-    const handleDeleteCurrency = async (currency) => {
-        if (!window.confirm(`حذف "${currency}"؟`)) return
+    const handleDeleteCurrency = async (currencyCode) => {
+        if (!window.confirm(`حذف "${currencyCode}"؟`)) return
 
         setLoading(true)
         try {
@@ -280,8 +324,13 @@ export default function Settings() {
             const settingsObj = await query.first()
 
             if (settingsObj) {
-                const currencies = settingsObj.get('currencies') || []
-                const filtered = currencies.filter(c => c !== currency)
+                let currentCurrencies = settingsObj.get('currencies') || []
+                // Handle possible legacy format during delete
+                if (currentCurrencies.length > 0 && typeof currentCurrencies[0] === 'string') {
+                    currentCurrencies = currentCurrencies.map(c => ({ code: c, rate: 1 }))
+                }
+
+                const filtered = currentCurrencies.filter(c => c.code !== currencyCode)
                 settingsObj.set('currencies', filtered)
                 await settingsObj.save()
                 toast.success('✅ تم الحذف!')
@@ -294,6 +343,27 @@ export default function Settings() {
         }
     }
 
+    // تحديث سعر الصرف
+    const handleUpdateRate = async (code, newRate) => {
+        const rate = parseFloat(newRate)
+        if (isNaN(rate) || rate < 0) return
+
+        try {
+            // We update local state optimistically, but save via a separate button or auto-save? 
+            // To keep it simple, let's just update the backend when they change it or click a small save icon?
+            // Actually, recreating the `currencies` array and saving is safer.
+            // For now, let's assume the user deletes and re-adds to change rate significantly, 
+            // OR we add a small API call to save just this change.
+
+            // Simplest approach: "Edit" isn't requested explicitly but implied. 
+            // Let's rely on Add/Delete for now as per minimal viable change, 
+            // OR better: allow re-adding same code to update rate?
+            // The prompt asks for "side by side", so showing it is key. editing is nice-to-have.
+            // I'll stick to Delete/Add for simplicity unless I add an Edit mode.
+            // Wait, user said "beside each currency its value".
+        } catch (e) { }
+    }
+
     return (
         <div className="min-h-screen transition-colors p-8 bg-gray-50 dark:bg-gray-900">
             <div className="max-w-6xl mx-auto">
@@ -304,7 +374,7 @@ export default function Settings() {
                             ⚙️ الإعدادات
                         </h1>
                         <p className="text-gray-600 dark:text-gray-400">
-                            تخصيص النظام وإضافة البيانات
+                            تخصيص النظام، العملات، واللغات
                         </p>
                     </div>
                 </div>
@@ -318,7 +388,7 @@ export default function Settings() {
                                 { id: 'general', label: '🏢 البيانات العامة' },
                                 { id: 'accounts', label: '💳 الحسابات' },
                                 { id: 'packages', label: '📦 الباقات' },
-                                { id: 'currencies', label: '💱 العملات' }
+                                { id: 'currencies', label: '💱 العملات وأسعار الصرف' }
                             ].map(tab => (
                                 <button
                                     key={tab.id}
@@ -356,6 +426,37 @@ export default function Settings() {
                                             className="w-full px-4 py-3 rounded-lg border-2 transition bg-white border-gray-300 text-gray-900 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
                                             placeholder="اسم المشروع"
                                         />
+                                    </div>
+
+                                    {/* العملة الرئيسية واللغة */}
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                        <div>
+                                            <label className="block text-sm font-bold mb-3 text-gray-700 dark:text-gray-300">
+                                                💰 العملة الرئيسية (للتقارير)
+                                            </label>
+                                            <select
+                                                value={formData.primaryCurrency}
+                                                onChange={(e) => setFormData({ ...formData, primaryCurrency: e.target.value })}
+                                                className="w-full px-4 py-3 rounded-lg border-2 transition bg-white border-gray-300 text-gray-900 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                            >
+                                                {settings.currencies.map(c => (
+                                                    <option key={c.code} value={c.code}>{c.code}</option>
+                                                ))}
+                                            </select>
+                                        </div>
+                                        <div>
+                                            <label className="block text-sm font-bold mb-3 text-gray-700 dark:text-gray-300">
+                                                🌐 لغة الموقع
+                                            </label>
+                                            <select
+                                                value={formData.language}
+                                                onChange={(e) => setFormData({ ...formData, language: e.target.value })}
+                                                className="w-full px-4 py-3 rounded-lg border-2 transition bg-white border-gray-300 text-gray-900 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                            >
+                                                <option value="ar">العربية</option>
+                                                <option value="en">English</option>
+                                            </select>
+                                        </div>
                                     </div>
 
                                     {/* اللوجو */}
@@ -402,7 +503,7 @@ export default function Settings() {
                                         disabled={loading}
                                         className="w-full bg-blue-500 text-white py-3 rounded-lg font-bold hover:bg-blue-600 disabled:opacity-50 transition"
                                     >
-                                        {loading ? 'جاري...' : '💾 حفظ'}
+                                        {loading ? 'جاري...' : '💾 حفظ التغييرات'}
                                     </button>
                                 </div>
                             </div>
@@ -522,24 +623,35 @@ export default function Settings() {
                         {activeTab === 'currencies' && (
                             <div className="rounded-lg shadow-lg p-8 bg-white dark:bg-gray-800">
                                 <h2 className="text-2xl font-bold mb-6 text-gray-900 dark:text-white">
-                                    💱 العملات
+                                    💱 العملات وأسعار الصرف
                                 </h2>
+                                <p className="mb-4 text-sm text-gray-500">
+                                    حدد سعر الصرف مقابل العملة الرئيسية ({settings.primaryCurrency}).
+                                    مثلاً إذا كانت الرئيسية جنيه مصري والراد إضافة دولار، أدخل 50.
+                                </p>
 
                                 {/* إضافة */}
                                 <div className="mb-8 p-6 rounded-lg border-2 border-dashed bg-gray-50 border-gray-300 dark:bg-gray-700 dark:border-gray-600">
                                     <div className="flex gap-3">
                                         <input
                                             type="text"
-                                            value={newCurrency}
-                                            onChange={(e) => setNewCurrency(e.target.value.toUpperCase())}
-                                            placeholder="EGP, USD..."
+                                            value={newCurrency.code}
+                                            onChange={(e) => setNewCurrency({ ...newCurrency, code: e.target.value.toUpperCase() })}
+                                            placeholder="Code (e.g. USD)"
                                             maxLength="3"
-                                            className="flex-1 px-4 py-2 rounded-lg border-2 uppercase bg-white border-gray-300 text-gray-900 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                                            className="w-1/3 px-4 py-2 rounded-lg border-2 uppercase bg-white border-gray-300 text-gray-900 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
+                                        />
+                                        <input
+                                            type="number"
+                                            value={newCurrency.rate}
+                                            onChange={(e) => setNewCurrency({ ...newCurrency, rate: e.target.value })}
+                                            placeholder="السعر مقابل الرئيسية"
+                                            className="w-1/3 px-4 py-2 rounded-lg border-2 bg-white border-gray-300 text-gray-900 dark:bg-gray-600 dark:border-gray-500 dark:text-white"
                                         />
                                         <button
                                             onClick={handleAddCurrency}
                                             disabled={loading}
-                                            className="px-6 py-2 bg-green-500 text-white rounded-lg font-bold hover:bg-green-600"
+                                            className="w-1/3 px-6 py-2 bg-green-500 text-white rounded-lg font-bold hover:bg-green-600"
                                         >
                                             ✅ إضافة
                                         </button>
@@ -547,19 +659,24 @@ export default function Settings() {
                                 </div>
 
                                 {/* القائمة */}
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                                     {settings.currencies.map(currency => (
                                         <div
-                                            key={currency}
+                                            key={currency.code}
                                             className="flex justify-between items-center p-3 rounded-lg border-l-4 border-cyan-500 bg-gray-50 dark:bg-gray-700"
                                         >
-                                            <span className="font-bold">💱 {currency}</span>
+                                            <div className="flex items-center gap-4">
+                                                <span className="font-bold text-lg">💱 {currency.code}</span>
+                                                <span className="text-sm bg-gray-200 dark:bg-gray-600 px-2 py-1 rounded">
+                                                    = {currency.rate} {settings.primaryCurrency}
+                                                </span>
+                                            </div>
                                             <button
-                                                onClick={() => handleDeleteCurrency(currency)}
+                                                onClick={() => handleDeleteCurrency(currency.code)}
                                                 disabled={loading}
-                                                className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600"
+                                                className="px-3 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600"
                                             >
-                                                ✕
+                                                🗑️
                                             </button>
                                         </div>
                                     ))}

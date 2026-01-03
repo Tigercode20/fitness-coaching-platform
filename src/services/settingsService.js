@@ -1,6 +1,7 @@
 import Parse from './back4app'
 
 // جلب الإعدادات
+// جلب الإعدادات
 export const getSettings = async () => {
     try {
         const query = new Parse.Query('Settings')
@@ -16,12 +17,25 @@ export const getSettings = async () => {
                     { id: 'standard', name: 'Varialiv', description: 'الباقة المتوسطة' },
                     { id: 'premium', name: 'VIP', description: 'الباقة المتقدمة' }
                 ],
-                currencies: ['EGP', 'USD', 'AED', 'SAR', 'KWD', 'EUR'],
+                currencies: [
+                    { code: 'EGP', rate: 1 },
+                    { code: 'USD', rate: 50 },
+                    { code: 'AED', rate: 13 },
+                    { code: 'SAR', rate: 13 }
+                ],
+                primaryCurrency: 'EGP',
+                language: 'ar',
                 subscriptionTypes: [
                     { id: 'new', name: 'جديد', icon: '✨' },
                     { id: 'renewal', name: 'تجديد', icon: '🔄' }
                 ]
             }
+        }
+
+        // Handle legacy currencies (array of strings)
+        let loadedCurrencies = result.get('currencies') || ['EGP', 'USD', 'AED', 'SAR', 'KWD', 'EUR']
+        if (loadedCurrencies.length > 0 && typeof loadedCurrencies[0] === 'string') {
+            loadedCurrencies = loadedCurrencies.map(c => ({ code: c, rate: 1 }))
         }
 
         return {
@@ -33,7 +47,9 @@ export const getSettings = async () => {
                 { id: 'standard', name: 'Varialiv', description: 'الباقة المتوسطة' },
                 { id: 'premium', name: 'VIP', description: 'الباقة المتقدمة' }
             ],
-            currencies: result.get('currencies') || ['EGP', 'USD', 'AED', 'SAR', 'KWD', 'EUR'],
+            currencies: loadedCurrencies,
+            primaryCurrency: result.get('primaryCurrency') || 'EGP',
+            language: result.get('language') || 'ar',
             subscriptionTypes: result.get('subscriptionTypes') || [
                 { id: 'new', name: 'جديد', icon: '✨' },
                 { id: 'renewal', name: 'تجديد', icon: '🔄' }
