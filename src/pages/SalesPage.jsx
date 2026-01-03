@@ -45,7 +45,9 @@ export default function SalesPage() {
             setSettings(s)
             // تحديث العملة والباقة الافتراضية إذا وجدت
             if (s.currencies && s.currencies.length > 0) {
-                setFormData(prev => ({ ...prev, currency: s.currencies[0] }))
+                const first = s.currencies[0]
+                const code = typeof first === 'object' ? first.code : first
+                setFormData(prev => ({ ...prev, currency: code }))
             }
             if (s.packages && s.packages.length > 0) {
                 setFormData(prev => ({ ...prev, package: s.packages[0].id }))
@@ -303,9 +305,10 @@ export default function SalesPage() {
                                             onChange={(e) => setFormData({ ...formData, currency: e.target.value })}
                                             className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-blue-500"
                                         >
-                                            {settings?.currencies?.map(currency => (
-                                                <option key={currency} value={currency}>{currency}</option>
-                                            ))}
+                                            {settings?.currencies?.map(currency => {
+                                                const code = typeof currency === 'object' ? currency.code : currency
+                                                return <option key={code} value={code}>{code}</option>
+                                            })}
                                             {(!settings?.currencies || settings.currencies.length === 0) && (
                                                 <option value="EGP">EGP</option>
                                             )}
