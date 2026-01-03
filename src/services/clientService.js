@@ -153,3 +153,20 @@ export const searchClientsByName = async (searchTerm) => {
         throw new Error(`Error searching clients: ${error.message}`);
     }
 };
+
+// Get Recent Clients (for dropdowns)
+export const getRecentClients = async (limit = 10) => {
+    try {
+        const query = new Parse.Query(CLIENT_CLASS);
+        query.descending('updatedAt'); // Sort by recent activity
+        query.limit(limit);
+        const results = await query.find();
+
+        return results.map(doc => ({
+            id: doc.id,
+            ...doc.attributes
+        }));
+    } catch (error) {
+        throw new Error(`Error fetching recent clients: ${error.message}`);
+    }
+};

@@ -121,7 +121,7 @@ export default function Sidebar({ isOpen, onClose }) {
         },
         {
             icon: <FaFileAlt />,
-            label: '📄 الخطة الأولية',
+            label: '📄 إنشاء خطط التدريب',
             path: '/training-plan',
             color: 'text-orange-500'
         },
