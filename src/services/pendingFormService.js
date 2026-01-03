@@ -43,7 +43,7 @@ export const savePendingForm = async (formData, formType = 'client') => {
 export const getPendingForms = async () => {
     try {
         const query = new Parse.Query(PENDING_FORM_CLASS);
-        query.equalTo('status', 'pending');
+        // query.equalTo('status', 'pending'); // REMOVED: Fetch all statuses so client can filter tabs
         query.descending('submittedAt');
 
         const results = await query.find();
