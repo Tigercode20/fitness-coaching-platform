@@ -157,8 +157,8 @@ function App() {
                         {/* Form Pages */}
                         <Route path="/new-client" element={<NewClientPage />} />
                         <Route path="/sales" element={<SalesPage />} />
-                        <Route path="/training-plan" element={<ProtectedRoute><TrainingPlanPage /></ProtectedRoute>} />
-                        <Route path="/training-follow-up" element={<ProtectedRoute><TrainingFollowUpPage /></ProtectedRoute>} />
+                        <Route path="/training-plan" element={<TrainingPlanPage />} />
+                        <Route path="/training-follow-up" element={<TrainingFollowUpPage />} />
                         <Route path="/client-update" element={<ClientUpdatePage />} />
                         <Route path="/public-forms" element={<PublicFormsPage />} />
                         <Route path="/settings" element={<Settings />} />

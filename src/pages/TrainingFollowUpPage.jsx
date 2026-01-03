@@ -57,13 +57,7 @@ export default function TrainingFollowUpPage() {
             const activeList = []
             const otherList = []
 
-            // Helper to find latest plan for a client
-            const findLatestPlan = (clientId, type) => {
-                const clientPlans = plans.filter(p =>
-                    p.get('client').id === clientId && p.get('type') === type
-                )
-                return clientPlans.length > 0 ? clientPlans[0] : null
-            }
+
 
             clients.forEach(client => {
                 // Find active subscription for this client (fuzzy match by name or strict by code pointer if existed)
@@ -90,11 +84,21 @@ export default function TrainingFollowUpPage() {
                     return end > new Date() // Is still active
                 })
 
+                const clientPlans = plans.filter(p => {
+                    const clientPtr = p.get('client')
+                    return clientPtr && clientPtr.id === client.id
+                }).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+
+                // Latest active plans for status pills
+                const latestTraining = clientPlans.find(p => p.get('type') === 'training')
+                const latestNutrition = clientPlans.find(p => p.get('type') === 'nutrition')
+
                 const processedClient = {
                     ...client,
                     sale: activeSale,
-                    trainingPlan: findLatestPlan(client.id, 'training'),
-                    nutritionPlan: findLatestPlan(client.id, 'nutrition')
+                    allPlans: clientPlans,
+                    trainingPlan: latestTraining,
+                    nutritionPlan: latestNutrition
                 }
 
                 if (activeSale) {
@@ -226,7 +230,7 @@ function ClientFollowUpCard({ client, isActive }) {
 
                 {/* Actions */}
                 <div className="flex gap-2">
-                    <Link to={`/client-update/${client.id}`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="تعديل">
+                    <Link to={`/client-update?clientId=${client.id}&name=${encodeURIComponent(client.FullName)}`} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg transition" title="تعديل">
                         <FaEdit />
                     </Link>
                 </div>

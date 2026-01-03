@@ -225,6 +225,26 @@ export default function DashboardOverview() {
                     </div>
                 </div>
 
+                {/* إجراءات سريعة */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+                    <Link to="/new-client" className="p-4 bg-blue-600 text-white rounded-xl shadow-lg hover:bg-blue-700 transition flex flex-col items-center gap-2 text-center group">
+                        <span className="text-2xl group-hover:scale-110 transition-transform">➕</span>
+                        <span className="font-bold">عميل جديد</span>
+                    </Link>
+                    <Link to="/training-plan" className="p-4 bg-orange-500 text-white rounded-xl shadow-lg hover:bg-orange-600 transition flex flex-col items-center gap-2 text-center group">
+                        <span className="text-2xl group-hover:scale-110 transition-transform">📄</span>
+                        <span className="font-bold">إنشاء خطة</span>
+                    </Link>
+                    <Link to="/training-follow-up" className="p-4 bg-cyan-600 text-white rounded-xl shadow-lg hover:bg-cyan-700 transition flex flex-col items-center gap-2 text-center group">
+                        <span className="text-2xl group-hover:scale-110 transition-transform">📅</span>
+                        <span className="font-bold">متابعة الخطط</span>
+                    </Link>
+                    <Link to="/sales" className="p-4 bg-green-600 text-white rounded-xl shadow-lg hover:bg-green-700 transition flex flex-col items-center gap-2 text-center group">
+                        <span className="text-2xl group-hover:scale-110 transition-transform">💰</span>
+                        <span className="font-bold">إضافة مبيعة</span>
+                    </Link>
+                </div>
+
                 {/* الأقسام الرئيسية */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     {/* العملاء الأخيرين */}
