@@ -129,28 +129,47 @@ export default function TrainingPlanPage() {
 - الهاتف: ${client.PhoneNumber}
 - الكود: ${client.ClientCode}
 - النوع: ${client.Gender}
+- تاريخ الميلاد: ${client.DOB}
+- الوظيفة: ${client.Job}
+- الدولة: ${client.Country}
+- الديانة: ${client.Religion}
 - الطول: ${client.Height} سم
 - الوزن: ${client.Weight} كجم
 
-🍎 التغذية:
+🏥 الصحة:
+- مشاكل صحية: ${client.HealthIssues || 'لا يوجد'}
+- أدوية: ${client.Medications || 'لا'} (${client.MedicationsDetails || 'لا يوجد تفاصيل'})
+- عمليات جراحية: ${client.Surgeries || client.surgeries || 'لا'} (${client.SurgeriesDetails || client.surgeriesDetails || 'لا يوجد تفاصيل'})
+- إصابات: ${client.Injuries || 'لا يوجد'}
+- تدخين: ${client.Smoker || 'لا'}
+- هل قمت بتحاليل: ${client.DidTests || client.labTest || 'لا'}
+
+🥗 التغذية والنظام السابق:
 - الهدف: ${client.Goal}
+- دايت سابق: ${client.PreviousDiet || client.previousDiet || 'لا'}
+- أسباب عدم الالتزام: ${client.NonAdherenceReasons || client.nonAdherenceReasons || 'لا يوجد'}
 - طبيعة اليوم والمجهود: ${client.DailyActivity}
 - عدد الوجبات: ${client.MealsCount}
 - الميزانية: ${client.Budget}
+- نوع الدايت المفضل: ${client.DietType || 'غير محدد'}
+- فيتامينات: ${client.Vitamins || client.vitamins || 'لا'}
 - ممنوعات: ${client.DislikedFood}
 - حساسية: ${client.FoodAllergies}
-- تفاصيل المنبهات: ${client.StimulantsNotes || client.stimulantsNotes || 'لا يوجد'}
+- منبهات: ${client.Stimulants || client.stimulants || 'لا'} (${client.StimulantsNotes || client.stimulantsNotes || ''})
+- بروتين مفضل: ${client.FavoriteProtein || client.favoriteProtein || '-'}
+- كارب مفضل: ${client.FavoriteCarbs || client.favoriteCarbs || '-'}
+- دهون مفضلة: ${client.FavoriteFats || client.favoriteFats || '-'}
 
 💪 التمرين:
 - الخبرة: ${client.TrainingExp}
+- مدة الحديد: ${client.WeightTrainingDuration || client.weightTrainingDuration || '-'}
+- رياضات أخرى: ${client.OtherSports || client.otherSports || 'لا يوجد'}
 - أيام متاحة: ${client.TrainingDays} (${client.AvailableDays})
 - مكان التمرين: ${client.GymLocation}
 - أدوات: ${client.AvailableTools}
-- إصابات: ${client.Injuries}
-- عمليات جراحية: ${client.Surgeries || client.surgeries}
-- تفاصيل العمليات: ${client.SurgeriesDetails || client.surgeriesDetails}
-- تفاصيل الأدوية: ${client.MedicationsDetails || client.medicationsDetails}
 - تمارين مكروهة / مؤلمة: ${client.PainfulExercises}
+- كارديو مفضل: ${client.CardioType || client.cardioType || '-'}
+- خطوات يومية: ${client.DailySteps || client.dailySteps || '-'}
 
 📝 معلومات إضافية وملاحظات:
 - تجارب أونلاين سابقة: ${client.OnlineExp || client.onlineExperience || 'لا يوجد'}
