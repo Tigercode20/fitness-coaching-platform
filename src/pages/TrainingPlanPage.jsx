@@ -126,9 +126,8 @@ export default function TrainingPlanPage() {
         if (!client) return ''
         return `
 👤 بيانات شخصية:
-- الاسم: ${client.FullName}
-- البريد: ${client.Email}
 - الهاتف: ${client.PhoneNumber}
+- الكود: ${client.ClientCode}
 - النوع: ${client.Gender}
 - الطول: ${client.Height} سم
 - الوزن: ${client.Weight} كجم
@@ -337,8 +336,8 @@ ${client.additionalNotes ? '- ملاحظات إضافية: ' + client.additional
                                 <button
                                     onClick={() => setPlanType('training')}
                                     className={`py-3 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all ${planType === 'training'
-                                            ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-md'
-                                            : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700/50'
+                                        ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-md'
+                                        : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700/50'
                                         }`}
                                 >
                                     <FaDumbbell className="text-xl" /> برنامج التدريب
@@ -346,8 +345,8 @@ ${client.additionalNotes ? '- ملاحظات إضافية: ' + client.additional
                                 <button
                                     onClick={() => setPlanType('nutrition')}
                                     className={`py-3 rounded-xl font-bold text-lg flex items-center justify-center gap-2 transition-all ${planType === 'nutrition'
-                                            ? 'bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 shadow-md'
-                                            : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700/50'
+                                        ? 'bg-white dark:bg-gray-700 text-green-600 dark:text-green-400 shadow-md'
+                                        : 'text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700/50'
                                         }`}
                                 >
                                     <FaAppleAlt className="text-xl" /> خطة التغذية
@@ -406,8 +405,8 @@ ${client.additionalNotes ? '- ملاحظات إضافية: ' + client.additional
                                     onClick={handleSave}
                                     disabled={loading}
                                     className={`w-full py-4 rounded-xl font-bold text-xl text-white shadow-lg transition transform hover:scale-[1.01] active:scale-[0.99] flex items-center justify-center gap-3 ${planType === 'training'
-                                            ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-blue-500/30'
-                                            : 'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 shadow-green-500/30'
+                                        ? 'bg-gradient-to-r from-blue-600 to-blue-500 hover:from-blue-700 hover:to-blue-600 shadow-blue-500/30'
+                                        : 'bg-gradient-to-r from-green-600 to-green-500 hover:from-green-700 hover:to-green-600 shadow-green-500/30'
                                         }`}
                                 >
                                     {loading ? 'جاري الحفظ...' : <><FaSave /> حفظ الخطة</>}
