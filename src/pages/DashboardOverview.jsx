@@ -183,8 +183,11 @@ export default function DashboardOverview() {
                                     💰 الإيرادات
                                 </p>
                                 <div className="flex items-baseline gap-1 mt-2">
-                                    <p className="text-4xl font-bold text-purple-500">
-                                        {stats.totalRevenue}
+                                    <p className={`font-bold text-purple-500 ${stats.totalRevenue.length > 7 ? 'text-2xl' : stats.totalRevenue.length > 5 ? 'text-3xl' : 'text-4xl'}`}>
+                                        {parseFloat(stats.totalRevenue) > 10000
+                                            ? Math.floor(parseFloat(stats.totalRevenue))
+                                            : stats.totalRevenue}
+                                        {parseFloat(stats.totalRevenue) > 10000 && <span className="text-sm">.00</span>}
                                     </p>
                                     <span className="text-lg font-bold text-purple-400">
                                         {settings.primaryCurrency}
